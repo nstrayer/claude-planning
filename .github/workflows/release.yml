@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Promote Pre-release to Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Find pre-release
+        id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find the latest pre-release using JSON output for reliability
+          PRERELEASE_TAG=$(gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | .tagName' | head -1)
+
+          if [ -z "$PRERELEASE_TAG" ]; then
+            echo "No pre-release found"
+            exit 1
+          fi
+
+          echo "Found pre-release: $PRERELEASE_TAG"
+          echo "prerelease_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
+
+          # Calculate release tag (remove -pre suffix)
+          RELEASE_TAG=${PRERELEASE_TAG%-pre}
+          echo "Release tag will be: $RELEASE_TAG"
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Get pre-release notes
+        id: notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRERELEASE_TAG="${{ steps.find.outputs.prerelease_tag }}"
+          RELEASE_TAG="${{ steps.find.outputs.release_tag }}"
+
+          # Get the release notes from the pre-release
+          gh release view "$PRERELEASE_TAG" --json body -q '.body' > release-notes.md
+
+          # Update the changelog link to use the release tag
+          sed -i "s|${PRERELEASE_TAG}|${RELEASE_TAG}|g" release-notes.md
+
+      - name: Create full release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRERELEASE_TAG="${{ steps.find.outputs.prerelease_tag }}"
+          RELEASE_TAG="${{ steps.find.outputs.release_tag }}"
+
+          # Delete the pre-release
+          echo "Deleting pre-release: $PRERELEASE_TAG"
+          gh release delete "$PRERELEASE_TAG" --yes --cleanup-tag
+
+          # Create the full release
+          echo "Creating release: $RELEASE_TAG"
+          gh release create "$RELEASE_TAG" \
+            --notes-file release-notes.md \
+            --target main \
+            --title "$RELEASE_TAG"
+
+          echo "Successfully promoted $PRERELEASE_TAG to $RELEASE_TAG"
