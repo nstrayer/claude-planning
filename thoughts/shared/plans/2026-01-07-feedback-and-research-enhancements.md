@@ -381,10 +381,10 @@ Phase 2 success criteria need a specific performance benchmark
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `review_plan.md` exists in `bootandshoe/commands/`
-- [ ] `review_plan_nt.md` exists in `bootandshoe/commands/`
-- [ ] Both files have valid YAML frontmatter with `model: opus`
-- [ ] Files contain all required sections (Initial Response, Review Process, etc.)
+- [x] `review_plan.md` exists in `bootandshoe/commands/`
+- [x] `review_plan_nt.md` exists in `bootandshoe/commands/`
+- [x] Both files have valid YAML frontmatter with `model: opus`
+- [x] Files contain all required sections (Initial Response, Review Process, etc.)
 
 #### Manual Verification:
 - [ ] Run `/review_plan` with an existing plan - verify section-by-section review flow
