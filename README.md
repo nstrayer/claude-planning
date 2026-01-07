@@ -1,85 +1,48 @@
-# Claude Code Plugins
+# Claude Code Planning Plugin
 
-A collection of powerful plugins for [Claude Code](https://claude.ai/code) that enhance your development workflow with specialized commands and agents for codebase research, planning, and implementation.
+A plugin for [Claude Code](https://claude.ai/code) that provides structured planning and implementation workflows with minimal context overhead.
 
-## Overview
-
-This repository provides a plugin marketplace for Claude Code with the **bootandshoe** plugin: 6 specialized agents and 10 slash commands for codebase research, planning, and implementation workflows.
+**Key benefit**: Parallel sub-agents research your codebase and return precise `file:line` references, keeping your main context lean while gathering comprehensive information.
 
 ## Installation
 
-### Add This Marketplace to Claude Code
-
-You can install plugins from this marketplace using one of these methods:
-
-#### From GitHub (Recommended)
-
 ```bash
-/plugin marketplace add bootandshoe/claude-planning
-```
+# Add marketplace
+/plugin marketplace add nstrayer/claude-planning
 
-#### From Local Directory
-
-If you've cloned this repository locally:
-
-```bash
-/plugin marketplace add /path/to/claude-planning
-```
-
-### Install the bootandshoe Plugin
-
-After adding the marketplace, install the plugin:
-
-```bash
-# Interactive installation (browse all available plugins)
-/plugin
-
-# Direct installation
+# Install plugin
 /plugin install bootandshoe@bootandshoe-claude-planning
 ```
 
-## Available Commands
+## Core Workflow
 
-### Planning Workflow Commands
+```bash
+/create_plan              # Research codebase, generate implementation plan
+/implement_plan <plan>    # Execute plan phase-by-phase with verification
+/validate_plan <plan>     # Verify success criteria
+```
+
+## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/research_codebase` | Spawn parallel agents to research the codebase comprehensively |
-| `/create_plan` | Interactive planning process that researches codebase and generates detailed implementation plans |
-| `/iterate_plan` | Update and refine existing implementation plans |
-| `/implement_plan` | Execute approved plans phase-by-phase with verification checkpoints |
-| `/validate_plan` | Verify implementation against plan success criteria |
+| `/create_plan` | Interactive planning with codebase research |
+| `/implement_plan` | Execute plans with automated/manual verification |
+| `/validate_plan` | Verify implementation against plan criteria |
+| `/research_codebase` | Spawn parallel agents for codebase research |
+| `/iterate_plan` | Update existing plans with new information |
 
-**Command Variants:**
-- `_nt` suffix: No thoughts directory required (e.g., `/create_plan_nt`)
-- `_generic` suffix: Generic version without project-specific features
+**Variants**: Add `_nt` for no-thoughts-directory mode, `_generic` for minimal project assumptions.
 
-## Available Agents
+## Agents
 
-Specialized agents invoked via Claude Code's Task tool:
+Specialized agents for the Task tool:
 
-| Agent | Description |
-|-------|-------------|
-| `codebase-analyzer` | Analyzes implementation details with file:line references |
-| `codebase-locator` | Finds where code lives in the codebase |
-| `codebase-pattern-finder` | Finds similar implementations and usage examples |
-| `thoughts-analyzer` | Deep dives on research topics in thoughts/ directory |
-| `thoughts-locator` | Discovers relevant documents in thoughts/ directory |
-| `web-search-researcher` | Performs web research for external documentation |
+| Agent | Purpose |
+|-------|---------|
+| `codebase-locator` | Find where code lives |
+| `codebase-analyzer` | Understand how code works |
+| `codebase-pattern-finder` | Find similar implementations |
+| `web-search-researcher` | Research external documentation |
 
-## Workflow Example
-
-```bash
-# 1. Research and plan
-/create_plan
-
-# 2. Implement the plan
-/implement_plan thoughts/shared/plans/2025-10-09-my-feature.md
-
-# 3. Validate implementation
-/validate_plan thoughts/shared/plans/2025-10-09-my-feature.md
-```
-
-## Requirements
-
-Some commands expect a `thoughts/` directory structure. See [full documentation](docs/bootandshoe.md) for details.
+See [full documentation](docs/bootandshoe.md) for details.
