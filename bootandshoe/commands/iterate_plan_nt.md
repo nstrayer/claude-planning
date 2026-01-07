@@ -104,6 +104,30 @@ Does this align with your intent?
 
 Get user confirmation before proceeding.
 
+### Feedback Tag Processing
+
+When the user responds, check for `<feedback>` tags in addition to their regular response:
+
+1. **Parse feedback tags** - Extract all tagged feedback
+2. **Prioritize tagged feedback** - These are specific, actionable items
+3. **Incorporate into your changes** - Address each tagged item explicitly
+4. **Confirm resolution** - Show how each feedback item was addressed
+
+Example user response:
+```
+Looks good overall.
+
+<feedback>
+Add a rollback step to Phase 2 in case the migration fails
+</feedback>
+
+<feedback>
+The success criteria should include a performance benchmark
+</feedback>
+```
+
+Your response should acknowledge and address both tagged items before making changes.
+
 ### Step 4: Update the Plan
 
 1. **Make focused, precise edits** to the existing plan:
