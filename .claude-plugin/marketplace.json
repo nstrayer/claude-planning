@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "bootandshoe-claude-planning",
+  "version": "1.0.0",
+  "description": "Various Plugins for Claude Code",
+  "owner": {
+    "name": "Nick Strayer",
+    "email": "nick.strayer@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "bootandshoe",
+      "description": "Commands and agents for codebase research, planning, and implementation workflows",
+      "source": "./bootandshoe",
+      "category": "development",
+      "version": "2025-12-15",
+      "author": {
+        "name": "BootAndShoe"
+      }
+    }
+  ]
+}
