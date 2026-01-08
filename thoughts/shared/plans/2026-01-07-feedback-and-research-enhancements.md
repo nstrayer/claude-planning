@@ -548,10 +548,10 @@ Update all agents from `model: sonnet` to `model: opus` for consistency and impr
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] All 6 agent files contain `model: opus` in frontmatter
-- [ ] No agent files contain `model: sonnet`
-- [ ] Verify with: `grep -r "model: sonnet" bootandshoe/agents/` returns no results
-- [ ] Verify with: `grep -r "model: opus" bootandshoe/agents/` returns 6 results
+- [x] All 6 agent files contain `model: opus` in frontmatter
+- [x] No agent files contain `model: sonnet`
+- [x] Verify with: `grep -r "model: sonnet" bootandshoe/agents/` returns no results
+- [x] Verify with: `grep -r "model: opus" bootandshoe/agents/` returns 6 results
 
 #### Manual Verification:
 - [ ] Run a command that spawns agents (e.g., `/create_plan`) - verify agents execute correctly with opus model
