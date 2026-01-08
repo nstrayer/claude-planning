@@ -106,27 +106,54 @@ Get user confirmation before proceeding.
 
 ### Feedback Tag Processing
 
-When the user responds, check for `<feedback>` tags in addition to their regular response:
+When the user responds, check for feedback in addition to their regular response. There are two feedback formats to handle:
 
-1. **Parse feedback tags** - Extract all tagged feedback
-2. **Prioritize tagged feedback** - These are specific, actionable items
-3. **Incorporate into your changes** - Address each tagged item explicitly
-4. **Confirm resolution** - Show how each feedback item was addressed
-
-Example user response:
+#### Legacy Inline Format
+Simple `<feedback>` tags wrapping content directly:
 ```
-Looks good overall.
-
 <feedback>
 Add a rollback step to Phase 2 in case the migration fails
 </feedback>
-
-<feedback>
-The success criteria should include a performance benchmark
-</feedback>
 ```
 
-Your response should acknowledge and address both tagged items before making changes.
+#### Marker-Based Format (VSCode Extension)
+The VSCode feedback extension uses a marker-based format for precise text references:
+
+**In the document** - markers wrap the specific text being discussed:
+```
+<!--fb:a1b2c3-->marked text that needs feedback<!--/fb:a1b2c3-->
+```
+
+**At end of file** - the actual feedback comments in a feedback section:
+```
+---
+<feedback-section>
+<feedback id="a1b2c3">
+The actual feedback comment about the marked text
+</feedback>
+</feedback-section>
+```
+
+**How to process marker-based feedback:**
+1. Find all `<feedback>` entries in the `<feedback-section>` at end of file
+2. For each feedback, locate the corresponding marker by ID (`<!--fb:id-->...<!--/fb:id-->`)
+3. Understand the context by reading the marked text
+4. Address the feedback and update the plan accordingly
+5. Remove the marker and feedback entry when resolved
+
+**To remove resolved feedback:**
+- Delete the `<!--fb:id-->` and `<!--/fb:id-->` markers (keep the text between them)
+- Delete the corresponding `<feedback id="id">...</feedback>` entry
+- If the feedback section becomes empty, remove it entirely
+
+#### Processing Guidelines
+1. **Parse feedback** - Extract all tagged feedback in either format
+2. **Prioritize tagged feedback** - These are specific, actionable items
+3. **Incorporate into your changes** - Address each tagged item explicitly
+4. **Confirm resolution** - Show how each feedback item was addressed
+5. **Clean up** - Remove resolved feedback markers and entries
+
+Your response should acknowledge and address all feedback items before making changes.
 
 ### Step 4: Update the Plan
 
