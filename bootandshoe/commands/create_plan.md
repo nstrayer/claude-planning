@@ -120,6 +120,49 @@ After getting initial clarifications:
 
 3. **Wait for ALL sub-tasks to complete** before proceeding
 
+### Proactive Web Research Suggestions
+
+During research and planning, proactively suggest web research when:
+
+1. **Unfamiliar Technologies**: If the task involves technologies, libraries, or frameworks you're not confident about:
+   ```
+   I notice this involves [technology]. Would you like me to search the web for
+   current best practices for [specific aspect]?
+   ```
+
+2. **Best Practices Uncertainty**: When you're unsure about the recommended approach:
+   ```
+   There are multiple ways to implement [feature]. Would you like me to research
+   current industry best practices for [specific pattern]?
+   ```
+
+3. **Version-Specific Information**: When implementation might depend on specific versions:
+   ```
+   The approach may vary based on [library] version. Would you like me to check
+   the latest documentation for [specific feature]?
+   ```
+
+4. **Security Considerations**: When the feature has security implications:
+   ```
+   This involves [sensitive area]. Would you like me to research current security
+   best practices for [specific concern]?
+   ```
+
+**When suggesting research**:
+- Be specific about what you'd search for
+- Explain why the research would be valuable
+- Wait for user confirmation before spawning web-search-researcher
+- If approved, use the web-search-researcher agent with a focused query
+
+**Example**:
+```
+I see we're implementing webhook signature verification. I have general knowledge
+about this, but webhook security practices evolve. Would you like me to search
+the web for current best practices for webhook signature verification in 2026?
+
+This could help ensure we're using the most secure approach.
+```
+
 4. **Present findings and design options**:
    ```
    Based on my research, here's what I found:

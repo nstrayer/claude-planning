@@ -500,9 +500,9 @@ Only proceed with web research if the user confirms interest.
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `create_plan.md` contains "Proactive Web Research Suggestions" section
-- [ ] `iterate_plan.md` contains "Web Research for Plan Updates" section
-- [ ] `research_codebase.md` contains "Supplementing with Web Research" section
+- [x] `create_plan.md` contains "Proactive Web Research Suggestions" section
+- [x] `iterate_plan.md` contains "Web Research for Plan Updates" section
+- [x] `research_codebase.md` contains "Supplementing with Web Research" section
 
 #### Manual Verification:
 - [ ] Run `/create_plan` for a task involving a modern framework - verify web research is suggested

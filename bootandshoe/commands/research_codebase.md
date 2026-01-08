@@ -78,6 +78,23 @@ Then wait for the user's research query.
    - Highlight patterns, connections, and architectural decisions
    - Answer the user's specific questions with concrete evidence
 
+### Supplementing with Web Research
+
+During codebase research, you may encounter areas where external research would be valuable:
+
+1. **Third-party integrations**: When researching how the codebase uses external APIs or services
+2. **Framework patterns**: When the codebase uses patterns that may have evolved
+3. **Deprecation concerns**: When you find usage of potentially outdated approaches
+
+**How to suggest**:
+```
+My codebase research found [implementation]. This integrates with [external service].
+Would you like me to search the web for the current recommended approach for
+[specific integration pattern]?
+```
+
+Only proceed with web research if the user confirms interest.
+
 5. **Gather metadata for the research document:**
    - Use the Skill tool to gather metadata: invoke the "spec-metadata" skill
    - Filename: `thoughts/shared/research/YYYY-MM-DD-description.md`

@@ -88,6 +88,19 @@ If the user's feedback requires understanding new code patterns or validating as
 
 4. **Wait for ALL sub-tasks to complete** before proceeding
 
+### Web Research for Plan Updates
+
+When user feedback introduces new technical considerations:
+
+1. **Identify knowledge gaps**: If the requested change involves something you're uncertain about
+2. **Suggest targeted research**:
+   ```
+   Your feedback about [topic] is a good point. Would you like me to search the
+   web for current best practices on [specific aspect] before updating the plan?
+   ```
+3. **Wait for confirmation**: Only spawn web-search-researcher if user approves
+4. **Incorporate findings**: Update the plan with researched best practices
+
 ### Step 3: Present Understanding and Approach
 
 Before making changes, confirm your understanding:
