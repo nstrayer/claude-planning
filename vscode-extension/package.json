@@ -3,11 +3,30 @@
   "displayName": "BootAndShoe Feedback Tags",
   "description": "Add feedback tags for bootandshoe iterate plan workflow",
   "version": "1.0.0",
-  "publisher": "bootandshoe",
+  "publisher": "nstrayer",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nstrayer/claude-planning.git"
+  },
+  "homepage": "https://github.com/nstrayer/claude-planning/tree/main/vscode-extension",
+  "bugs": {
+    "url": "https://github.com/nstrayer/claude-planning/issues"
+  },
+  "keywords": [
+    "feedback",
+    "markdown",
+    "bootandshoe",
+    "planning",
+    "claude"
+  ],
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "activationEvents": [
     "onLanguage:markdown"
   ],
@@ -119,18 +138,23 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "publish:vsce": "vsce publish",
+    "publish:ovsx": "ovsx publish"
   },
   "dependencies": {
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@types/node": "16.x",
     "@types/uuid": "^9.0.0",
     "@types/vscode": "^1.74.0",
-    "@types/node": "16.x",
-    "typescript": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0"
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^8.0.0",
+    "ovsx": "^0.10.8",
+    "typescript": "^5.0.0"
   }
 }

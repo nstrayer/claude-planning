@@ -1,5 +1,9 @@
 # BootAndShoe Feedback Tags
 
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/nstrayer.bootandshoe-feedback-tags)](https://marketplace.visualstudio.com/items?itemName=nstrayer.bootandshoe-feedback-tags)
+[![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/nstrayer.bootandshoe-feedback-tags)](https://marketplace.visualstudio.com/items?itemName=nstrayer.bootandshoe-feedback-tags)
+[![Open VSX Version](https://img.shields.io/open-vsx/v/nstrayer/bootandshoe-feedback-tags)](https://open-vsx.org/extension/nstrayer/bootandshoe-feedback-tags)
+
 VS Code extension for adding feedback tags in markdown files, designed for the bootandshoe iterate plan workflow.
 
 ## Features
