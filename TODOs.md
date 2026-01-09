@@ -1,6 +1,5 @@
 Next steps:
 
-- Add ability for user to provide feedback on plans using `<feedback>` tags.
-- Flesh out the research work a bit more. Ideally it should guide the agent to reserach the internet for techniques if appropriate. This should be verified with the programmer. 
-- Audit all of the commands/agents to ensure they are using the latest best practices for prompting Claude and limiting context bloat.
-- Switch to using opus for all agents/commands. 
+- Be smarter about detecting what a plan is. E.g. a format in the header that can be checked and the create plan command can generate.
+- Add ability to copy command and plan path to the clipboard for easy use in claude. E.g. copy `/bootandshoe:iterate_plan /path/to/plan.md` to clipboard.
+- Look into making the IDs for the feedback more human-readable. Potentially using a small llm to generate meaningful names based on the area and content of the feedback.
