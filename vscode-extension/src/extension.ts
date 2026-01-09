@@ -9,6 +9,42 @@ function generateFeedbackId(): string {
     return uuidv4().split('-')[0]; // First 8 chars of UUID
 }
 
+/**
+ * Check if a document is an implementation plan by looking for YAML frontmatter
+ * with type: implementation-plan
+ */
+function isImplementationPlan(document: vscode.TextDocument): boolean {
+    const text = document.getText();
+    // Check for YAML frontmatter with type: implementation-plan
+    const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---/);
+    if (frontmatterMatch) {
+        return frontmatterMatch[1].includes('type: implementation-plan');
+    }
+    return false;
+}
+
+/**
+ * Extract plan metadata from YAML frontmatter
+ */
+function getPlanMetadata(document: vscode.TextDocument): { title?: string; status?: string; created?: string } | null {
+    const text = document.getText();
+    const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontmatterMatch) {
+        return null;
+    }
+
+    const frontmatter = frontmatterMatch[1];
+    const titleMatch = frontmatter.match(/title:\s*"?([^"\n]+)"?/);
+    const statusMatch = frontmatter.match(/status:\s*(\S+)/);
+    const createdMatch = frontmatter.match(/created:\s*(\S+)/);
+
+    return {
+        title: titleMatch?.[1],
+        status: statusMatch?.[1],
+        created: createdMatch?.[1]
+    };
+}
+
 interface FeedbackMarkerInfo {
     id: string;
     content: string;
@@ -42,6 +78,36 @@ function getFeedbackMarkers(document: vscode.TextDocument): FeedbackMarkerInfo[]
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('BootAndShoe Feedback Tags extension activated');
+
+    // Create status bar item for plan detection
+    const planStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    context.subscriptions.push(planStatusBarItem);
+
+    // Update status bar when active editor changes
+    function updatePlanStatusBar() {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            planStatusBarItem.hide();
+            return;
+        }
+
+        if (isImplementationPlan(editor.document)) {
+            const metadata = getPlanMetadata(editor.document);
+            const title = metadata?.title || 'Implementation Plan';
+            const status = metadata?.status || 'unknown';
+            planStatusBarItem.text = `$(checklist) ${title}`;
+            planStatusBarItem.tooltip = `Implementation Plan\nStatus: ${status}`;
+            planStatusBarItem.show();
+        } else {
+            planStatusBarItem.hide();
+        }
+    }
+
+    // Initial update and listen for editor changes
+    updatePlanStatusBar();
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(() => updatePlanStatusBar())
+    );
 
     // Register command for feedback (always with comment now)
     const addFeedback = vscode.commands.registerCommand(

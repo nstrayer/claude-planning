@@ -1,3 +1,10 @@
+---
+type: implementation-plan
+title: "[Feature/Task Name]"
+created: YYYY-MM-DD
+status: draft
+---
+
 # Improve Plan Detection with Formal Header Format
 
 ## Overview
@@ -158,9 +165,9 @@ function isImplementationPlan(document: vscode.TextDocument): boolean {
 - [x] Extension code includes plan detection: `grep "implementation-plan" vscode-extension/src/*.ts`
 
 #### Manual Verification:
-- [ ] Opening a plan file triggers plan-specific UI
-- [ ] Opening a non-plan markdown file does not trigger plan UI
-- [ ] Plan title from frontmatter is displayed correctly
+- [x] Opening a plan file triggers plan-specific UI
+- [x] Opening a non-plan markdown file does not trigger plan UI
+- [x] Plan title from frontmatter is displayed correctly
 
 ---
 

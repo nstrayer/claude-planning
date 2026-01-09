@@ -167,6 +167,13 @@ After structure approval:
 2. **Use this template structure**:
 
 ````markdown
+---
+type: implementation-plan
+title: "[Feature/Task Name]"
+created: YYYY-MM-DD
+status: draft
+---
+
 # [Feature/Task Name] Implementation Plan
 
 ## Overview
