@@ -1,10 +1,16 @@
 ---
-description: Create a new release tag and push to GitHub
+description: Promote the latest pre-release to a full release
 ---
 
 # New Release
 
-Create a new semantic version release tag and push it to GitHub.
+Promote the latest pre-release to a full release by triggering the GitHub Actions release workflow.
+
+## Background
+
+This repo uses a two-stage release process:
+1. **Automatic pre-releases**: Every push to `main` triggers `prerelease.yml`, which creates a `v*.*.*-pre` tag based on conventional commits
+2. **Manual promotion**: This command triggers `release.yml` to promote the latest pre-release to a full release
 
 ## Workflow
 
@@ -31,55 +37,40 @@ git status
 
 If any check fails, inform the user and stop. Do not proceed with the release.
 
-### Step 2: Determine Current Version
+### Step 2: Find Latest Pre-release
 
 ```bash
-# Get latest version tag
-git tag -l 'v*' --sort=-v:refname | head -1
+gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | .tagName' | head -1
 ```
 
-- Parse the tag into major.minor.patch components
-- If no tags exist, treat current version as `v0.0.0`
+- If no pre-release exists, inform the user and stop
+- Show the user which pre-release will be promoted (e.g., `v1.0.2-pre` → `v1.0.2`)
 
-### Step 3: Ask for Release Type
-
-Use `AskUserQuestion` to ask the user what type of release this is:
-
-- **Major** (breaking changes): `v1.2.3` → `v2.0.0`
-- **Minor** (new features): `v1.2.3` → `v1.3.0`
-- **Patch** (bug fixes): `v1.2.3` → `v1.2.4`
-
-Calculate the next version based on their selection.
-
-### Step 4: Confirm and Create Release
+### Step 3: Confirm and Trigger Release
 
 Show the user:
 ```
-Current version: v1.2.3
-New version: v1.3.0
-Release type: minor
+Pre-release to promote: v1.0.2-pre
+Release version: v1.0.2
 
-This will:
-1. Create annotated tag v1.3.0
-2. Push tag to origin
+This will trigger the release workflow to:
+1. Delete the pre-release tag
+2. Create full release v1.0.2
 ```
 
 Then execute:
 ```bash
-# Create annotated tag
-git tag -a v{VERSION} -m "Release v{VERSION}"
-
-# Push tag to origin
-git push origin v{VERSION}
+gh workflow run release.yml
 ```
 
-### Step 5: Report Success
+### Step 4: Report Success
 
-Confirm the release was created and provide the GitHub releases URL:
 ```
-Release v1.3.0 created and pushed!
+Release workflow triggered!
 
-View on GitHub: https://github.com/{owner}/{repo}/releases/tag/v{VERSION}
+The workflow will promote v1.0.2-pre to v1.0.2.
+Monitor progress: gh run list --workflow=release.yml
+View releases: https://github.com/{owner}/{repo}/releases
 ```
 
 ## Error Handling
@@ -87,4 +78,4 @@ View on GitHub: https://github.com/{owner}/{repo}/releases/tag/v{VERSION}
 - **Dirty working directory**: List the uncommitted files and ask user to commit or stash them
 - **Wrong branch**: Tell user to switch to main branch first
 - **Behind remote**: Tell user to pull latest changes first
-- **Tag already exists**: This shouldn't happen if version calculation is correct, but inform user if it does
+- **No pre-release found**: Tell user to push changes to main first to create a pre-release
