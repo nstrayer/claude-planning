@@ -15,16 +15,18 @@ const feedbackSectionDecorationType = vscode.window.createTextEditorDecorationTy
     isWholeLine: true
 });
 
-interface FeedbackMarker {
+export interface FeedbackMarker {
     id: string;
     range: vscode.Range;
+    startLine: number;
+    content: string;
     comment: string | null;
 }
 
 /**
  * Parse feedback markers from document text
  */
-function parseFeedbackMarkers(document: vscode.TextDocument): FeedbackMarker[] {
+export function parseFeedbackMarkers(document: vscode.TextDocument): FeedbackMarker[] {
     const text = document.getText();
     const markers: FeedbackMarker[] = [];
 
@@ -34,6 +36,7 @@ function parseFeedbackMarkers(document: vscode.TextDocument): FeedbackMarker[] {
 
     while ((match = markerRegex.exec(text))) {
         const id = match[1];
+        const content = match[2].trim();
         const startPos = document.positionAt(match.index);
         const endPos = document.positionAt(match.index + match[0].length);
 
@@ -45,6 +48,8 @@ function parseFeedbackMarkers(document: vscode.TextDocument): FeedbackMarker[] {
         markers.push({
             id,
             range: new vscode.Range(startPos, endPos),
+            startLine: startPos.line,
+            content,
             comment
         });
     }

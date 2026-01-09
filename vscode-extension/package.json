@@ -13,6 +13,16 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "feedbackExplorer",
+          "name": "Feedback",
+          "icon": "$(comment-discussion)",
+          "contextualTitle": "Document Feedback"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "feedbackTags.addFeedback",
@@ -42,6 +52,12 @@
       {
         "command": "feedbackTags.removeFeedback",
         "title": "Remove Feedback",
+        "category": "Feedback",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "feedbackTags.goToFeedback",
+        "title": "Go to Feedback",
         "category": "Feedback"
       }
     ],
@@ -56,6 +72,13 @@
           "command": "feedbackTags.addGeneralFeedback",
           "when": "editorLangId == 'markdown'",
           "group": "1_modification@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "feedbackTags.removeFeedback",
+          "when": "view == feedbackExplorer && viewItem == feedbackItem",
+          "group": "inline"
         }
       ]
     },

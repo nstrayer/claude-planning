@@ -114,20 +114,48 @@ async function showFeedbackList() {
             label: `$(comment) ${displayContent}`,
             description: `Line ${loc.markerRange.start.line + 1}`,
             detail: displayComment,
-            location: loc
+            buttons: [{
+                iconPath: new vscode.ThemeIcon('trash'),
+                tooltip: 'Delete this feedback'
+            }],
+            location: loc,
+            feedbackId: loc.id
         };
     });
 
-    const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: 'Select feedback to navigate to',
-        matchOnDescription: true,
-        matchOnDetail: true
+    const quickPick = vscode.window.createQuickPick<typeof items[0]>();
+    quickPick.items = items;
+    quickPick.placeholder = 'Select feedback to navigate to, or click trash to delete';
+    quickPick.matchOnDescription = true;
+    quickPick.matchOnDetail = true;
+
+    quickPick.onDidTriggerItemButton(async (e) => {
+        if (e.button.tooltip === 'Delete this feedback') {
+            const confirm = await vscode.window.showWarningMessage(
+                `Delete feedback "${e.item.detail}"?`,
+                { modal: true },
+                'Delete'
+            );
+            if (confirm === 'Delete') {
+                quickPick.hide();
+                await vscode.commands.executeCommand('feedbackTags.removeFeedback', e.item.feedbackId);
+                // Re-show the list after deletion
+                vscode.commands.executeCommand('feedbackTags.listFeedback');
+            }
+        }
     });
 
-    if (selected) {
-        editor.selection = new vscode.Selection(selected.location.markerRange.start, selected.location.markerRange.start);
-        editor.revealRange(selected.location.markerRange, vscode.TextEditorRevealType.InCenter);
-    }
+    quickPick.onDidAccept(() => {
+        const selected = quickPick.selectedItems[0];
+        if (selected) {
+            editor.selection = new vscode.Selection(selected.location.markerRange.start, selected.location.markerRange.start);
+            editor.revealRange(selected.location.markerRange, vscode.TextEditorRevealType.InCenter);
+        }
+        quickPick.hide();
+    });
+
+    quickPick.onDidHide(() => quickPick.dispose());
+    quickPick.show();
 }
 
 /**

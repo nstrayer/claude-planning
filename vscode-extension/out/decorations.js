@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseFeedbackMarkers = parseFeedbackMarkers;
 exports.updateDecorations = updateDecorations;
 exports.registerDecorationListeners = registerDecorationListeners;
 const vscode = __importStar(require("vscode"));
@@ -60,6 +61,7 @@ function parseFeedbackMarkers(document) {
     let match;
     while ((match = markerRegex.exec(text))) {
         const id = match[1];
+        const content = match[2].trim();
         const startPos = document.positionAt(match.index);
         const endPos = document.positionAt(match.index + match[0].length);
         // Find the associated feedback comment
@@ -69,6 +71,8 @@ function parseFeedbackMarkers(document) {
         markers.push({
             id,
             range: new vscode.Range(startPos, endPos),
+            startLine: startPos.line,
+            content,
             comment
         });
     }

@@ -116,8 +116,8 @@ Add a rollback step to Phase 2 in case the migration fails
 </feedback>
 ```
 
-#### Marker-Based Format (VSCode Extension)
-The VSCode feedback extension uses a marker-based format for precise text references:
+#### Marker-Based Format
+This format uses HTML comment markers for precise text references:
 
 **In the document** - markers wrap the specific text being discussed:
 ```

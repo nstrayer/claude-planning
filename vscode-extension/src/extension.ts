@@ -1,11 +1,43 @@
 import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
-import { registerDecorationListeners } from './decorations';
+import { registerDecorationListeners, FeedbackMarker } from './decorations';
 import { registerNavigationCommands } from './navigation';
+import { FeedbackTreeProvider, FeedbackItem } from './feedbackTreeProvider';
 
 // Generate short unique IDs for feedback markers
 function generateFeedbackId(): string {
     return uuidv4().split('-')[0]; // First 8 chars of UUID
+}
+
+interface FeedbackMarkerInfo {
+    id: string;
+    content: string;
+    comment: string | null;
+}
+
+/**
+ * Get all feedback markers from a document
+ */
+function getFeedbackMarkers(document: vscode.TextDocument): FeedbackMarkerInfo[] {
+    const text = document.getText();
+    const markers: FeedbackMarkerInfo[] = [];
+
+    const markerRegex = /<!--fb:([a-f0-9]+)-->([\s\S]*?)<!--\/fb:\1-->/g;
+    let match;
+
+    while ((match = markerRegex.exec(text))) {
+        const id = match[1];
+        const content = match[2].trim();
+
+        // Find the associated feedback comment
+        const feedbackRegex = new RegExp(`<feedback id="${id}">\\s*([\\s\\S]*?)\\s*</feedback>`);
+        const feedbackMatch = text.match(feedbackRegex);
+        const comment = feedbackMatch ? feedbackMatch[1].trim() : null;
+
+        markers.push({ id, content, comment });
+    }
+
+    return markers;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -23,10 +55,51 @@ export function activate(context: vscode.ExtensionContext) {
         addGeneralFeedbackTag
     );
 
-    // Register command to remove feedback by ID
+    // Register command to remove feedback by ID, FeedbackItem, or show picker if none
     const removeFeedbackCmd = vscode.commands.registerCommand(
         'feedbackTags.removeFeedback',
-        (feedbackId: string) => removeFeedback(feedbackId)
+        async (arg?: string | FeedbackItem) => {
+            let feedbackId: string | undefined;
+
+            if (typeof arg === 'string') {
+                feedbackId = arg;
+            } else if (arg && arg.marker) {
+                feedbackId = arg.marker.id;
+            }
+
+            if (!feedbackId) {
+                // Show picker to select feedback to delete
+                const editor = vscode.window.activeTextEditor;
+                if (!editor) {
+                    vscode.window.showErrorMessage('No active editor');
+                    return;
+                }
+
+                const markers = getFeedbackMarkers(editor.document);
+                if (markers.length === 0) {
+                    vscode.window.showInformationMessage('No feedback markers in this file');
+                    return;
+                }
+
+                const items = markers.map(m => ({
+                    label: m.content.substring(0, 40) + (m.content.length > 40 ? '...' : ''),
+                    description: `ID: ${m.id}`,
+                    detail: m.comment || 'No comment',
+                    id: m.id
+                }));
+
+                const selected = await vscode.window.showQuickPick(items, {
+                    placeHolder: 'Select feedback to delete'
+                });
+
+                if (!selected) {
+                    return;
+                }
+                feedbackId = selected.id;
+            }
+
+            await removeFeedback(feedbackId);
+        }
     );
 
     context.subscriptions.push(addFeedback, addGeneralFeedback, removeFeedbackCmd);
@@ -36,6 +109,41 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register navigation commands
     registerNavigationCommands(context);
+
+    // Register feedback tree view
+    const feedbackProvider = new FeedbackTreeProvider();
+    const treeView = vscode.window.createTreeView('feedbackExplorer', {
+        treeDataProvider: feedbackProvider
+    });
+    context.subscriptions.push(treeView);
+
+    // Refresh tree view when active editor changes
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(() => feedbackProvider.refresh())
+    );
+
+    // Refresh tree view when document content changes
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument((e) => {
+            if (e.document === vscode.window.activeTextEditor?.document) {
+                feedbackProvider.refresh();
+            }
+        })
+    );
+
+    // Register navigation command for tree view items
+    context.subscriptions.push(
+        vscode.commands.registerCommand('feedbackTags.goToFeedback', (marker: FeedbackMarker) => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                return;
+            }
+
+            const start = new vscode.Position(marker.startLine, 0);
+            editor.selection = new vscode.Selection(start, start);
+            editor.revealRange(new vscode.Range(start, start), vscode.TextEditorRevealType.InCenter);
+        })
+    );
 }
 
 /**

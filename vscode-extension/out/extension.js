@@ -39,9 +39,29 @@ const vscode = __importStar(require("vscode"));
 const uuid_1 = require("uuid");
 const decorations_1 = require("./decorations");
 const navigation_1 = require("./navigation");
+const feedbackTreeProvider_1 = require("./feedbackTreeProvider");
 // Generate short unique IDs for feedback markers
 function generateFeedbackId() {
     return (0, uuid_1.v4)().split('-')[0]; // First 8 chars of UUID
+}
+/**
+ * Get all feedback markers from a document
+ */
+function getFeedbackMarkers(document) {
+    const text = document.getText();
+    const markers = [];
+    const markerRegex = /<!--fb:([a-f0-9]+)-->([\s\S]*?)<!--\/fb:\1-->/g;
+    let match;
+    while ((match = markerRegex.exec(text))) {
+        const id = match[1];
+        const content = match[2].trim();
+        // Find the associated feedback comment
+        const feedbackRegex = new RegExp(`<feedback id="${id}">\\s*([\\s\\S]*?)\\s*</feedback>`);
+        const feedbackMatch = text.match(feedbackRegex);
+        const comment = feedbackMatch ? feedbackMatch[1].trim() : null;
+        markers.push({ id, content, comment });
+    }
+    return markers;
 }
 function activate(context) {
     console.log('BootAndShoe Feedback Tags extension activated');
@@ -49,13 +69,72 @@ function activate(context) {
     const addFeedback = vscode.commands.registerCommand('feedbackTags.addFeedback', () => addFeedbackTag());
     // Register command for general file feedback (no selection needed)
     const addGeneralFeedback = vscode.commands.registerCommand('feedbackTags.addGeneralFeedback', addGeneralFeedbackTag);
-    // Register command to remove feedback by ID
-    const removeFeedbackCmd = vscode.commands.registerCommand('feedbackTags.removeFeedback', (feedbackId) => removeFeedback(feedbackId));
+    // Register command to remove feedback by ID, FeedbackItem, or show picker if none
+    const removeFeedbackCmd = vscode.commands.registerCommand('feedbackTags.removeFeedback', async (arg) => {
+        let feedbackId;
+        if (typeof arg === 'string') {
+            feedbackId = arg;
+        }
+        else if (arg && arg.marker) {
+            feedbackId = arg.marker.id;
+        }
+        if (!feedbackId) {
+            // Show picker to select feedback to delete
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage('No active editor');
+                return;
+            }
+            const markers = getFeedbackMarkers(editor.document);
+            if (markers.length === 0) {
+                vscode.window.showInformationMessage('No feedback markers in this file');
+                return;
+            }
+            const items = markers.map(m => ({
+                label: m.content.substring(0, 40) + (m.content.length > 40 ? '...' : ''),
+                description: `ID: ${m.id}`,
+                detail: m.comment || 'No comment',
+                id: m.id
+            }));
+            const selected = await vscode.window.showQuickPick(items, {
+                placeHolder: 'Select feedback to delete'
+            });
+            if (!selected) {
+                return;
+            }
+            feedbackId = selected.id;
+        }
+        await removeFeedback(feedbackId);
+    });
     context.subscriptions.push(addFeedback, addGeneralFeedback, removeFeedbackCmd);
     // Register decoration listeners for visual highlighting
     (0, decorations_1.registerDecorationListeners)(context);
     // Register navigation commands
     (0, navigation_1.registerNavigationCommands)(context);
+    // Register feedback tree view
+    const feedbackProvider = new feedbackTreeProvider_1.FeedbackTreeProvider();
+    const treeView = vscode.window.createTreeView('feedbackExplorer', {
+        treeDataProvider: feedbackProvider
+    });
+    context.subscriptions.push(treeView);
+    // Refresh tree view when active editor changes
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => feedbackProvider.refresh()));
+    // Refresh tree view when document content changes
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((e) => {
+        if (e.document === vscode.window.activeTextEditor?.document) {
+            feedbackProvider.refresh();
+        }
+    }));
+    // Register navigation command for tree view items
+    context.subscriptions.push(vscode.commands.registerCommand('feedbackTags.goToFeedback', (marker) => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
+        const start = new vscode.Position(marker.startLine, 0);
+        editor.selection = new vscode.Selection(start, start);
+        editor.revealRange(new vscode.Range(start, start), vscode.TextEditorRevealType.InCenter);
+    }));
 }
 /**
  * Add feedback about selected text using marker-based referencing
