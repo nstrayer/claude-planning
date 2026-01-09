@@ -77,7 +77,8 @@ function getFeedbackMarkers(document: vscode.TextDocument): FeedbackMarkerInfo[]
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('BootAndShoe Feedback Tags extension activated');
+    console.log('TESTING 123 - NEW CODE IS RUNNING');
+    console.log('Step 1: Starting activation');
 
     // Create status bar item for plan detection
     const planStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -88,10 +89,14 @@ export function activate(context: vscode.ExtensionContext) {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             planStatusBarItem.hide();
+            vscode.commands.executeCommand('setContext', 'feedbackTags.isImplementationPlan', false);
             return;
         }
 
-        if (isImplementationPlan(editor.document)) {
+        const isPlan = isImplementationPlan(editor.document);
+        vscode.commands.executeCommand('setContext', 'feedbackTags.isImplementationPlan', isPlan);
+
+        if (isPlan) {
             const metadata = getPlanMetadata(editor.document);
             const title = metadata?.title || 'Implementation Plan';
             const status = metadata?.status || 'unknown';
@@ -108,18 +113,21 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(() => updatePlanStatusBar())
     );
+    console.log('Step 2: Status bar setup complete');
 
     // Register command for feedback (always with comment now)
     const addFeedback = vscode.commands.registerCommand(
         'feedbackTags.addFeedback',
         () => addFeedbackTag()
     );
+    console.log('Step 3: addFeedback registered');
 
     // Register command for general file feedback (no selection needed)
     const addGeneralFeedback = vscode.commands.registerCommand(
         'feedbackTags.addGeneralFeedback',
         addGeneralFeedbackTag
     );
+    console.log('Step 4: addGeneralFeedback registered');
 
     // Register command to remove feedback by ID, FeedbackItem, or show picker if none
     const removeFeedbackCmd = vscode.commands.registerCommand(
@@ -167,8 +175,23 @@ export function activate(context: vscode.ExtensionContext) {
             await removeFeedback(feedbackId);
         }
     );
+    console.log('Step 5: removeFeedbackCmd registered');
 
-    context.subscriptions.push(addFeedback, addGeneralFeedback, removeFeedbackCmd);
+    // Register commands for terminal submission
+    const submitToTerminal = vscode.commands.registerCommand(
+        'feedbackTags.submitToTerminal',
+        submitPlanToTerminal
+    );
+    console.log('Step 6: submitToTerminal registered');
+
+    const copyCommand = vscode.commands.registerCommand(
+        'feedbackTags.copyIterateCommand',
+        copyIterateCommand
+    );
+    console.log('Step 7: copyCommand registered');
+
+    context.subscriptions.push(addFeedback, addGeneralFeedback, removeFeedbackCmd, submitToTerminal, copyCommand);
+    console.log('Step 8: All commands pushed to subscriptions');
 
     // Register decoration listeners for visual highlighting
     registerDecorationListeners(context);
@@ -353,6 +376,117 @@ async function removeFeedback(feedbackId: string) {
     }
 
     vscode.window.showInformationMessage(`Feedback ${feedbackId} removed`);
+}
+
+/**
+ * Submit the current plan file with feedback to Claude Code terminal
+ */
+async function submitPlanToTerminal() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor');
+        return;
+    }
+
+    // Check if this is an implementation plan document
+    if (!isImplementationPlan(editor.document)) {
+        vscode.window.showWarningMessage('This command works with implementation plan documents only');
+        return;
+    }
+
+    // Check if there are any feedback markers
+    const markers = getFeedbackMarkers(editor.document);
+    if (markers.length === 0) {
+        const proceed = await vscode.window.showQuickPick(
+            ['Continue anyway', 'Cancel'],
+            { placeHolder: 'No feedback markers found. Submit anyway?' }
+        );
+        if (proceed !== 'Continue anyway') {
+            return;
+        }
+    }
+
+    // Get the file path
+    const filePath = editor.document.fileName;
+
+    // Construct the command
+    const command = `/bootandshoe:iterate_plan ${filePath}`;
+
+    // Get all terminals
+    const terminals = vscode.window.terminals;
+
+    if (terminals.length === 0) {
+        // No terminals at all
+        const action = await vscode.window.showQuickPick(
+            ['Copy to clipboard', 'Cancel'],
+            { placeHolder: 'No terminals found. Copy command to clipboard?' }
+        );
+
+        if (action === 'Copy to clipboard') {
+            await vscode.env.clipboard.writeText(command);
+            vscode.window.showInformationMessage(`Command copied: ${command}`);
+        }
+        return;
+    }
+
+    let selectedTerminal: vscode.Terminal | undefined;
+
+    if (terminals.length === 1) {
+        // Only one terminal, use it
+        selectedTerminal = terminals[0];
+    } else {
+        // Multiple terminals, let user choose
+        const terminalItems = terminals.map((t, i) => ({
+            label: t.name,
+            description: vscode.window.activeTerminal === t ? '(active)' : '',
+            terminal: t,
+            index: i
+        }));
+
+        const selected = await vscode.window.showQuickPick(terminalItems, {
+            placeHolder: 'Select terminal to send command to'
+        });
+
+        if (!selected) {
+            return;
+        }
+
+        selectedTerminal = selected.terminal;
+    }
+
+    // Send to selected terminal
+    selectedTerminal.sendText(command);
+    selectedTerminal.show();
+
+    vscode.window.showInformationMessage(`Sent to ${selectedTerminal.name}: ${command}`);
+}
+
+/**
+ * Copy iterate_plan command to clipboard
+ */
+async function copyIterateCommand() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor');
+        return;
+    }
+
+    // Check if this is an implementation plan document
+    if (!isImplementationPlan(editor.document)) {
+        vscode.window.showWarningMessage('This command works with implementation plan documents only');
+        return;
+    }
+
+    // Get the file path
+    const filePath = editor.document.fileName;
+
+    // Construct the command
+    const command = `/bootandshoe:iterate_plan ${filePath}`;
+
+    // Copy to clipboard
+    await vscode.env.clipboard.writeText(command);
+
+    vscode.window.showInformationMessage(`Command copied to clipboard: ${command}`);
 }
 
 /**
