@@ -90,9 +90,45 @@
         "title": "Copy Iterate Plan Command",
         "category": "Feedback",
         "icon": "$(copy)"
+      },
+      {
+        "command": "feedbackTags.copyPlanPath",
+        "title": "Copy Plan Path",
+        "category": "Feedback",
+        "icon": "$(files)"
+      },
+      {
+        "command": "feedbackTags.copyFeedbackSummary",
+        "title": "Copy All Feedback Summary",
+        "category": "Feedback",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "feedbackTags.submitImplementPlan",
+        "title": "Submit Implement Plan to Claude Code Terminal",
+        "category": "Feedback",
+        "icon": "$(play)"
+      },
+      {
+        "command": "feedbackTags.copyImplementCommand",
+        "title": "Copy Implement Plan Command",
+        "category": "Feedback",
+        "icon": "$(copy)"
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "feedbackTags.submitToTerminal",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "navigation@1"
+        },
+        {
+          "command": "feedbackTags.submitImplementPlan",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "navigation@2"
+        }
+      ],
       "editor/context": [
         {
           "command": "feedbackTags.addFeedback",
@@ -110,9 +146,36 @@
           "group": "2_feedback@1"
         },
         {
-          "command": "feedbackTags.copyIterateCommand",
+          "command": "feedbackTags.submitImplementPlan",
           "when": "feedbackTags.isImplementationPlan",
           "group": "2_feedback@2"
+        },
+        {
+          "command": "feedbackTags.copyIterateCommand",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "2_feedback@3"
+        },
+        {
+          "command": "feedbackTags.copyImplementCommand",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "2_feedback@4"
+        },
+        {
+          "command": "feedbackTags.copyPlanPath",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "2_feedback@5"
+        },
+        {
+          "command": "feedbackTags.copyFeedbackSummary",
+          "when": "editorLangId == 'markdown'",
+          "group": "2_feedback@6"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "feedbackTags.copyPlanPath",
+          "when": "resourceExtname == '.md'",
+          "group": "7_modification@1"
         }
       ],
       "view/item/context": [
