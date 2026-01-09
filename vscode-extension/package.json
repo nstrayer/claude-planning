@@ -78,6 +78,18 @@
         "command": "feedbackTags.goToFeedback",
         "title": "Go to Feedback",
         "category": "Feedback"
+      },
+      {
+        "command": "feedbackTags.submitToTerminal",
+        "title": "Submit Plan to Claude Code Terminal",
+        "category": "Feedback",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "feedbackTags.copyIterateCommand",
+        "title": "Copy Iterate Plan Command",
+        "category": "Feedback",
+        "icon": "$(copy)"
       }
     ],
     "menus": {
@@ -91,6 +103,16 @@
           "command": "feedbackTags.addGeneralFeedback",
           "when": "editorLangId == 'markdown'",
           "group": "1_modification@2"
+        },
+        {
+          "command": "feedbackTags.submitToTerminal",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "2_feedback@1"
+        },
+        {
+          "command": "feedbackTags.copyIterateCommand",
+          "when": "feedbackTags.isImplementationPlan",
+          "group": "2_feedback@2"
         }
       ],
       "view/item/context": [
@@ -131,6 +153,18 @@
         "key": "ctrl+shift+l",
         "mac": "cmd+shift+l",
         "when": "editorTextFocus && editorLangId == 'markdown'"
+      },
+      {
+        "command": "feedbackTags.submitToTerminal",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "editorTextFocus && feedbackTags.isImplementationPlan"
+      },
+      {
+        "command": "feedbackTags.copyIterateCommand",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "editorTextFocus && feedbackTags.isImplementationPlan"
       }
     ]
   },
