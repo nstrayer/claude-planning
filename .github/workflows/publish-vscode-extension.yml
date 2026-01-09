@@ -9,6 +9,9 @@ jobs:
     name: Publish Extension
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write  # Required to upload assets to releases
+
     # Only run for releases that look like version tags
     if: startsWith(github.event.release.tag_name, 'v')
 
