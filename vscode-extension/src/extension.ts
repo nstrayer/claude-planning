@@ -1,13 +1,9 @@
 import * as vscode from 'vscode';
-import { v4 as uuidv4 } from 'uuid';
 import { registerDecorationListeners, FeedbackMarker } from './decorations';
 import { registerNavigationCommands } from './navigation';
 import { FeedbackTreeProvider, FeedbackItem } from './feedbackTreeProvider';
-
-// Generate short unique IDs for feedback markers
-function generateFeedbackId(): string {
-    return uuidv4().split('-')[0]; // First 8 chars of UUID
-}
+import { generateReadableId, findNearestSection } from './idGenerator';
+import { generateLlmId, isCopilotAvailable } from './llmIdGenerator';
 
 /**
  * Check if a document is an implementation plan by looking for YAML frontmatter
@@ -58,7 +54,7 @@ function getFeedbackMarkers(document: vscode.TextDocument): FeedbackMarkerInfo[]
     const text = document.getText();
     const markers: FeedbackMarkerInfo[] = [];
 
-    const markerRegex = /<!--fb:([a-f0-9]+)-->([\s\S]*?)<!--\/fb:\1-->/g;
+    const markerRegex = /<!--fb:([a-z0-9-]+)-->([\s\S]*?)<!--\/fb:\1-->/gi;
     let match;
 
     while ((match = markerRegex.exec(text))) {
@@ -267,6 +263,47 @@ export function activate(context: vscode.ExtensionContext) {
             editor.revealRange(new vscode.Range(start, start), vscode.TextEditorRevealType.InCenter);
         })
     );
+
+    // Check Copilot availability if LLM IDs are enabled
+    const config = vscode.workspace.getConfiguration('claudeFeedback');
+    if (config.get<boolean>('useLlmForIds')) {
+        isCopilotAvailable().then(available => {
+            if (!available) {
+                vscode.window.showInformationMessage(
+                    'Claude Feedback: AI-generated IDs enabled but GitHub Copilot not available. Using heuristic IDs instead.'
+                );
+            }
+        });
+    }
+}
+
+/**
+ * Generate a feedback ID, optionally using LLM if enabled
+ */
+async function generateFeedbackIdAsync(
+    document: vscode.TextDocument,
+    selection: vscode.Selection,
+    selectedText: string,
+    feedbackComment: string,
+    token: vscode.CancellationToken
+): Promise<string> {
+    const config = vscode.workspace.getConfiguration('claudeFeedback');
+
+    if (config.get<boolean>('useLlmForIds')) {
+        const sectionContext = findNearestSection(document, selection.start.line);
+        const llmId = await generateLlmId(
+            sectionContext || '',
+            selectedText,
+            feedbackComment,
+            token
+        );
+        if (llmId) {
+            return llmId;
+        }
+        // Fallback to heuristic if LLM fails or Copilot unavailable
+    }
+
+    return generateReadableId(document, selection, feedbackComment);
 }
 
 /**
@@ -305,8 +342,22 @@ async function addFeedbackTag() {
         return;
     }
 
-    const feedbackId = generateFeedbackId();
     const document = editor.document;
+    const tokenSource = new vscode.CancellationTokenSource();
+
+    let feedbackId: string;
+    try {
+        feedbackId = await generateFeedbackIdAsync(
+            document,
+            selection,
+            selectedText,
+            feedbackComment,
+            tokenSource.token
+        );
+    } finally {
+        tokenSource.dispose();
+    }
+
     const text = document.getText();
 
     // Create the marker-wrapped text

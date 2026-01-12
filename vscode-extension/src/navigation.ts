@@ -13,7 +13,7 @@ function findFeedbackLocations(document: vscode.TextDocument): FeedbackLocation[
     const text = document.getText();
     const locations: FeedbackLocation[] = [];
 
-    const markerRegex = /<!--fb:([a-f0-9]+)-->[\s\S]*?<!--\/fb:\1-->/g;
+    const markerRegex = /<!--fb:([a-z0-9-]+)-->[\s\S]*?<!--\/fb:\1-->/gi;
     let match;
 
     while ((match = markerRegex.exec(text))) {
@@ -98,7 +98,7 @@ async function showFeedbackList() {
     const items = locations.map(loc => {
         // Get the marked text content
         const markedText = editor.document.getText(loc.markerRange);
-        const contentMatch = markedText.match(/<!--fb:[a-f0-9]+-->([\s\S]*?)<!--\/fb:[a-f0-9]+-->/);
+        const contentMatch = markedText.match(/<!--fb:[a-z0-9-]+-->([\s\S]*?)<!--\/fb:[a-z0-9-]+-->/i);
         const content = contentMatch ? contentMatch[1].trim() : 'Unknown';
 
         // Get the feedback comment

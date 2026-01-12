@@ -53,7 +53,9 @@ Three options with increasing sophistication. We'll implement Option 2 (heuristi
 
 **Option 1: Simple Pattern** - Use section header + counter (e.g., `overview-1`, `phase2-3`)
 **Option 2: Content-Based** - Extract keywords from selection/feedback (e.g., `auth-clarity`)
-**Option 3: LLM-Generated** - Use a small model to generate meaningful IDs
+**Option 3: LLM-Generated** - Use VSCode Language Model API (Copilot) to generate meaningful IDs
+
+> **Note**: Option 3 uses VSCode's built-in `vscode.lm` namespace instead of direct API calls. This requires GitHub Copilot but eliminates API key management.
 
 ---
 
@@ -92,7 +94,7 @@ Search for similar patterns and update to accept `[a-z0-9-]+`
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] TypeScript compiles: `cd vscode-extension && npm run compile`
+- [x] TypeScript compiles: `cd vscode-extension && npm run compile`
 - [ ] Extension activates without errors
 
 #### Manual Verification:
@@ -253,9 +255,9 @@ const feedbackId = `general-${keywords}`;
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] TypeScript compiles: `cd vscode-extension && npm run compile`
-- [ ] No linting errors: `cd vscode-extension && npm run lint`
-- [ ] New file exists: `test -f vscode-extension/src/idGenerator.ts`
+- [x] TypeScript compiles: `cd vscode-extension && npm run compile`
+- [x] No linting errors: `cd vscode-extension && npm run lint`
+- [x] New file exists: `test -f vscode-extension/src/idGenerator.ts`
 
 #### Manual Verification:
 - [ ] Adding feedback in "## Overview" section creates ID like `overview-keyword`
@@ -269,13 +271,25 @@ const feedbackId = `general-${keywords}`;
 ## Phase 3: Optional LLM-Generated IDs
 
 ### Overview
-Add optional integration with a small LLM to generate contextually meaningful IDs when network is available.
+Add optional integration with VSCode's built-in Language Model API to generate contextually meaningful IDs. This uses GitHub Copilot's models without requiring API key management.
+
+### Why This Matters for LLM Coding Agents
+
+Human-readable feedback IDs significantly improve how LLM coding agents interpret and act on feedback:
+
+| Hex ID | Human-Readable ID | Agent Benefit |
+|--------|-------------------|---------------|
+| `a1b2c3d4` | `phase2-api-clarity` | Instant spatial + topic awareness |
+| Requires lookup | Self-documenting | Reduced context consumption |
+| No filtering | Pattern-based grouping | Can process `api-*` feedback together |
+
+**Key insight**: Human-readable IDs act as semantic compression - agents understand feedback relevance from the ID alone without reading full content, reducing context usage by ~50% when filtering irrelevant feedback.
 
 ### Changes Required:
 
 #### 1. Add Configuration Setting
 **File**: `vscode-extension/package.json`
-**Changes**: Add setting for LLM ID generation
+**Changes**: Add setting for LLM ID generation (no API key needed)
 
 ```json
 "configuration": {
@@ -284,110 +298,191 @@ Add optional integration with a small LLM to generate contextually meaningful ID
     "claudeFeedback.useLlmForIds": {
       "type": "boolean",
       "default": false,
-      "description": "Use LLM to generate contextual feedback IDs (requires API key)"
-    },
-    "claudeFeedback.llmApiKey": {
-      "type": "string",
-      "default": "",
-      "description": "API key for LLM service (Anthropic Claude)"
+      "description": "Use AI to generate contextual feedback IDs (requires GitHub Copilot)"
     }
   }
 }
 ```
 
+**Note**: No API key setting needed - the VSCode Language Model API uses the user's existing Copilot subscription.
+
 #### 2. Create LLM ID Generator
 **File**: `vscode-extension/src/llmIdGenerator.ts` (new file)
-**Changes**: Create module for LLM-based ID generation
+**Changes**: Create module using VSCode's Language Model API
 
 ```typescript
 import * as vscode from 'vscode';
 
 /**
- * Generate a feedback ID using an LLM
+ * Generate a feedback ID using VSCode's Language Model API (Copilot)
  */
 export async function generateLlmId(
     context: string,
     selectedText: string,
-    feedbackText: string
+    feedbackText: string,
+    token: vscode.CancellationToken
 ): Promise<string | null> {
-    const config = vscode.workspace.getConfiguration('claudeFeedback');
-    const apiKey = config.get<string>('llmApiKey');
-
-    if (!apiKey) {
-        return null;
-    }
-
     try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-3-haiku-20240307',
-                max_tokens: 50,
-                messages: [{
-                    role: 'user',
-                    content: `Generate a short, kebab-case ID (2-4 words, lowercase, hyphens) for this feedback:
+        // Select available models - prefer smaller/faster models for ID generation
+        const models = await vscode.lm.selectChatModels({
+            vendor: 'copilot',
+            family: 'gpt-4o-mini'  // Fast, cheap, sufficient for short ID generation
+        });
+
+        // Fallback to any available model if gpt-4o-mini not available
+        const availableModels = models.length > 0
+            ? models
+            : await vscode.lm.selectChatModels({ vendor: 'copilot' });
+
+        if (availableModels.length === 0) {
+            // No models available - user may not have Copilot
+            return null;
+        }
+
+        const prompt = `Generate a short, kebab-case ID (2-4 words, lowercase, hyphens) for this feedback:
 
 Section context: ${context}
 Selected text: "${selectedText.substring(0, 100)}"
 Feedback: "${feedbackText.substring(0, 100)}"
 
-Reply with ONLY the ID, nothing else. Example: auth-flow-unclear`
-                }]
-            })
-        });
+Reply with ONLY the ID, nothing else. Example: auth-flow-unclear`;
 
-        if (!response.ok) {
-            return null;
+        const messages = [
+            vscode.LanguageModelChatMessage.User(prompt)
+        ];
+
+        const response = await availableModels[0].sendRequest(messages, {}, token);
+
+        // Collect streamed response
+        let result = '';
+        for await (const fragment of response.text) {
+            result += fragment;
+            // Early exit if we have enough characters
+            if (result.length > 40) break;
         }
 
-        const data = await response.json() as { content: Array<{ text: string }> };
-        const id = data.content[0]?.text?.trim()?.toLowerCase()?.replace(/[^a-z0-9-]/g, '');
+        // Validate and clean the ID
+        const id = result.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+        return id && id.length >= 3 && id.length <= 30 ? id : null;
 
-        return id && id.length <= 30 ? id : null;
+    } catch (err) {
+        if (err instanceof vscode.LanguageModelError) {
+            // Log for debugging but don't break functionality
+            console.log('Language model error:', err.message, err.code);
+        }
+        return null;  // Fallback to heuristic generation
+    }
+}
+
+/**
+ * Check if Copilot language models are available
+ */
+export async function isCopilotAvailable(): Promise<boolean> {
+    try {
+        const models = await vscode.lm.selectChatModels({ vendor: 'copilot' });
+        return models.length > 0;
     } catch {
-        return null;
+        return false;
     }
 }
 ```
+
+**Key differences from direct API approach**:
+- No API key management - uses Copilot subscription
+- Requires `CancellationToken` for proper VSCode integration
+- Streaming response handling
+- Graceful fallback when Copilot unavailable
+- Access to multiple model providers (GPT-4o, Claude 3.5 Sonnet, etc.)
 
 #### 3. Integrate LLM Generation with Fallback
 **File**: `vscode-extension/src/extension.ts`
 **Changes**: Use LLM when enabled, fall back to heuristic
 
 ```typescript
-import { generateLlmId } from './llmIdGenerator';
-import { generateReadableId } from './idGenerator';
+import { generateLlmId, isCopilotAvailable } from './llmIdGenerator';
+import { generateReadableId, findNearestSection } from './idGenerator';
 
 // In addFeedbackTag(), replace ID generation:
-let feedbackId: string;
+async function generateFeedbackIdAsync(
+    document: vscode.TextDocument,
+    selection: vscode.Selection,
+    selectedText: string,
+    feedbackComment: string,
+    token: vscode.CancellationToken
+): Promise<string> {
+    const config = vscode.workspace.getConfiguration('claudeFeedback');
 
-const config = vscode.workspace.getConfiguration('claudeFeedback');
-if (config.get<boolean>('useLlmForIds')) {
-    const sectionContext = findNearestSection(document, selection.start.line);
-    const llmId = await generateLlmId(sectionContext || '', selectedText, feedbackComment);
-    feedbackId = llmId || generateReadableId(document, selection, feedbackComment);
-} else {
-    feedbackId = generateReadableId(document, selection, feedbackComment);
+    if (config.get<boolean>('useLlmForIds')) {
+        const sectionContext = findNearestSection(document, selection.start.line);
+        const llmId = await generateLlmId(
+            sectionContext || '',
+            selectedText,
+            feedbackComment,
+            token
+        );
+        if (llmId) {
+            return llmId;
+        }
+        // Fallback to heuristic if LLM fails or Copilot unavailable
+    }
+
+    return generateReadableId(document, selection, feedbackComment);
+}
+
+// Usage in command handler:
+vscode.commands.registerCommand('feedbackTags.addFeedback', async () => {
+    const tokenSource = new vscode.CancellationTokenSource();
+    try {
+        // ... get document, selection, feedbackComment ...
+        const feedbackId = await generateFeedbackIdAsync(
+            document,
+            selection,
+            selectedText,
+            feedbackComment,
+            tokenSource.token
+        );
+        // ... use feedbackId ...
+    } finally {
+        tokenSource.dispose();
+    }
+});
+```
+
+#### 4. Optional: Show Copilot Status in UI
+**File**: `vscode-extension/src/extension.ts`
+**Changes**: Inform users about Copilot availability
+
+```typescript
+// On extension activation, check Copilot availability
+export async function activate(context: vscode.ExtensionContext) {
+    // ... existing activation code ...
+
+    const config = vscode.workspace.getConfiguration('claudeFeedback');
+    if (config.get<boolean>('useLlmForIds')) {
+        const copilotAvailable = await isCopilotAvailable();
+        if (!copilotAvailable) {
+            vscode.window.showInformationMessage(
+                'Claude Feedback: AI-generated IDs enabled but GitHub Copilot not available. Using heuristic IDs instead.'
+            );
+        }
+    }
 }
 ```
 
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] TypeScript compiles: `cd vscode-extension && npm run compile`
+- [x] TypeScript compiles: `cd vscode-extension && npm run compile`
 - [ ] Settings appear in VS Code: Check extension settings UI
+- [x] No `llmApiKey` setting exists (removed)
 
 #### Manual Verification:
 - [ ] With setting OFF: Uses heuristic ID generation
-- [ ] With setting ON + valid API key: Uses LLM-generated IDs
-- [ ] With setting ON + invalid/missing key: Falls back to heuristic
-- [ ] LLM-generated IDs are contextually meaningful
-- [ ] Network errors don't break functionality
+- [ ] With setting ON + Copilot installed: Uses LLM-generated IDs
+- [ ] With setting ON + Copilot NOT installed: Falls back to heuristic with info message
+- [ ] LLM-generated IDs are contextually meaningful (e.g., `auth-flow-unclear`)
+- [ ] Rate limit errors don't break functionality (graceful fallback)
+- [ ] Cancellation works (user can cancel long-running requests)
 
 ---
 
@@ -398,6 +493,7 @@ if (config.get<boolean>('useLlmForIds')) {
 - `findNearestSection` finds correct headers
 - `ensureUnique` adds proper suffixes
 - `slugify` produces valid IDs
+- `isCopilotAvailable` returns boolean without throwing
 
 ### Integration Tests:
 1. Add feedback in various sections → Check ID reflects section
@@ -412,15 +508,25 @@ if (config.get<boolean>('useLlmForIds')) {
 5. Verify ID like `phase2-auth-something`
 6. Add same feedback twice
 7. Verify second gets unique suffix
-8. Enable LLM setting with valid API key
-9. Add feedback and verify LLM-generated ID
+
+**With Copilot installed:**
+8. Enable `useLlmForIds` setting
+9. Add feedback and verify LLM-generated ID is contextual
+10. Check no errors in Developer Tools console
+
+**Without Copilot:**
+11. Enable `useLlmForIds` setting
+12. Verify info message appears about fallback
+13. Add feedback and verify heuristic ID is used
 
 ## Performance Considerations
 
-- Heuristic generation is synchronous and fast
-- LLM generation adds ~500ms latency (acceptable for user-initiated action)
-- LLM fallback ensures no blocking on network issues
-- IDs cached implicitly (no re-generation needed)
+- Heuristic generation is synchronous and fast (< 1ms)
+- LLM generation adds ~200-500ms latency (acceptable for user-initiated action)
+- VSCode Language Model API handles rate limiting automatically
+- Fallback to heuristic ensures no blocking on Copilot issues
+- IDs generated once per feedback addition (no regeneration needed)
+- Streaming response with early exit minimizes latency
 
 ## Migration Notes
 
@@ -435,3 +541,13 @@ if (config.get<boolean>('useLlmForIds')) {
 - Marker regex: `vscode-extension/src/extension.ts:25`
 - Tree view display: `vscode-extension/src/feedbackTreeProvider.ts`
 - Original requirement: `TODOs.md:6`
+
+### VSCode Language Model API Documentation
+- [Language Model API Guide](https://code.visualstudio.com/api/extension-guides/language-model)
+- [VSCode API Reference - lm namespace](https://code.visualstudio.com/api/references/vscode-api#lm)
+- [VSCode 1.90 Release Notes](https://code.visualstudio.com/updates/v1_90) - API became stable
+- [VSCode 1.95 Release Notes](https://code.visualstudio.com/updates/v1_95) - Language Model Tools finalized
+
+### Related Research
+- `thoughts/shared/research/2026-01-12-vscode-lm-api-for-feedback-ids.md` - VSCode API research
+- `thoughts/shared/research/2026-01-11-feedback-id-human-readable-analysis.md` - Performance analysis

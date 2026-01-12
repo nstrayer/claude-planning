@@ -32,6 +32,16 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Claude Feedback",
+      "properties": {
+        "claudeFeedback.useLlmForIds": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use AI to generate contextual feedback IDs (requires GitHub Copilot)"
+        }
+      }
+    },
     "views": {
       "explorer": [
         {

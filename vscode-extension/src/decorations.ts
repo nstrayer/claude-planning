@@ -31,7 +31,7 @@ export function parseFeedbackMarkers(document: vscode.TextDocument): FeedbackMar
     const markers: FeedbackMarker[] = [];
 
     // Find all feedback markers: <!--fb:id-->...<!--/fb:id-->
-    const markerRegex = /<!--fb:([a-f0-9]+)-->([\s\S]*?)<!--\/fb:\1-->/g;
+    const markerRegex = /<!--fb:([a-z0-9-]+)-->([\s\S]*?)<!--\/fb:\1-->/gi;
     let match;
 
     while ((match = markerRegex.exec(text))) {
