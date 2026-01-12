@@ -75,3 +75,14 @@ jobs:
             --title "$RELEASE_TAG"
 
           echo "Successfully promoted $PRERELEASE_TAG to $RELEASE_TAG"
+
+    outputs:
+      release_tag: ${{ steps.find.outputs.release_tag }}
+
+  publish:
+    name: Publish Extension
+    needs: release
+    uses: ./.github/workflows/publish-vscode-extension.yml
+    with:
+      tag: ${{ needs.release.outputs.release_tag }}
+    secrets: inherit
