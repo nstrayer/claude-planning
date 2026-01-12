@@ -1,4 +1,4 @@
-name: Release
+name: Release (Deprecated - Use /new_release command)
 
 on:
   workflow_dispatch:

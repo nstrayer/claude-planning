@@ -4,13 +4,13 @@ description: Promote the latest pre-release to a full release
 
 # New Release
 
-Promote the latest pre-release to a full release by triggering the GitHub Actions release workflow.
+Promote the latest pre-release to a full release by creating a GitHub release directly.
 
 ## Background
 
 This repo uses a two-stage release process:
 1. **Automatic pre-releases**: Every push to `main` triggers `prerelease.yml`, which creates a `v*.*.*-pre` tag based on conventional commits
-2. **Manual promotion**: This command triggers `release.yml` to promote the latest pre-release to a full release
+2. **Manual promotion**: This command creates a full release directly, which triggers `publish-vscode-extension.yml` to publish the extension
 
 ## Workflow
 
@@ -74,31 +74,50 @@ gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | 
 - If no pre-release exists, inform the user and stop
 - Show the user which pre-release will be promoted (e.g., `v1.0.2-pre` → `v1.0.2`)
 
-### Step 4: Confirm and Trigger Release
+### Step 4: Create Release
 
 Show the user:
 ```
 Pre-release to promote: v1.0.2-pre
 Release version: v1.0.2
 
-This will trigger the release workflow to:
-1. Delete the pre-release tag
-2. Create full release v1.0.2
+Creating GitHub release...
 ```
 
 Then execute:
 ```bash
-gh workflow run release.yml
+# Get the release notes from the pre-release
+gh release view "$PRERELEASE_TAG" --json body -q '.body' > /tmp/release-notes.md
+
+# Update the changelog link to use the release tag
+sed "s|${PRERELEASE_TAG}|${RELEASE_TAG}|g" /tmp/release-notes.md > /tmp/release-notes-updated.md
+
+# Delete the pre-release (including its tag)
+gh release delete "$PRERELEASE_TAG" --yes --cleanup-tag
+
+# Create the full release (this will trigger the publish workflow via release event)
+gh release create "$RELEASE_TAG" \
+  --notes-file /tmp/release-notes-updated.md \
+  --target main \
+  --title "$RELEASE_TAG"
+
+# Clean up temp files
+rm /tmp/release-notes.md /tmp/release-notes-updated.md
 ```
 
 ### Step 5: Report Success
 
 ```
-Release workflow triggered!
+Release $RELEASE_TAG created successfully!
 
-The workflow will promote v1.0.2-pre to v1.0.2.
-Monitor progress: gh run list --workflow=release.yml
-View releases: https://github.com/{owner}/{repo}/releases
+The publish workflow has been automatically triggered to:
+- Build and package the VSCode extension
+- Upload the .vsix file to the release
+- Publish to VS Code Marketplace
+- Publish to Open VSX Registry
+
+Monitor progress: gh run list --workflow=publish-vscode-extension.yml --limit=1
+View release: https://github.com/{owner}/{repo}/releases/tag/$RELEASE_TAG
 ```
 
 ## Error Handling
