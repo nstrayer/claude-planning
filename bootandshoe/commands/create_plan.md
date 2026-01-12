@@ -46,6 +46,27 @@ Then wait for the user's input.
    - **CRITICAL**: DO NOT spawn sub-tasks before reading these files yourself in the main context
    - **NEVER** read files partially - if a file is mentioned, read it completely
 
+### PRD Detection and Handling
+
+After reading mentioned files, check if any are PRD (Product Requirements Document) documents:
+
+**Detection criteria** (check in order):
+1. YAML frontmatter contains `type: prd`
+2. File path contains `/prds/` directory
+3. Filename matches pattern `*-prd.md`
+
+**If PRD detected**:
+- Acknowledge: "I see this is a PRD document. I'll extract the requirements and focus my research on technical implementation."
+- Extract and map PRD sections to plan sections:
+  - **Goals & Objectives** → Plan Overview + Desired End State
+  - **User Stories & Use Cases** → Guide phase breakdown
+  - **Functional Requirements** → Technical implementation details
+  - **Acceptance Criteria** → Plan success criteria (manual verification)
+  - **Technical Considerations** → Implementation approach
+  - **Out of Scope** → Plan's "What We're NOT Doing"
+- **Skip questions about**: User needs, feature goals, scope boundaries (already documented in PRD)
+- **Focus research and questions on**: Technical implementation details, code patterns to follow, architecture decisions, integration points
+
 2. **Spawn initial research tasks to gather context**:
    Before asking the user any questions, use specialized agents to research in parallel:
 
@@ -480,4 +501,36 @@ Assistant: Let me read that requirements file completely first...
 Based on the requirements, I understand we need to track parent-child relationships for sub-task events. Before I start planning, I have some questions...
 
 [Interactive process continues...]
+```
+
+### Example: Planning from a PRD
+
+```
+User: /create_plan thoughts/shared/prds/2026-01-12-notebook-assistant.md
+Assistant: Let me read that file...
+
+[Reads file, detects `type: prd` in frontmatter]
+
+I see this is a PRD document. I'll extract the requirements and focus my research on technical implementation.
+
+**From the PRD:**
+- Goals: Replace quickpick with custom notebook assistant menu
+- Users: Data scientists, notebook users
+- Requirements: Show settings, display context being sent to assistant
+- Out of Scope: Full notebook editing capabilities
+
+Let me research the codebase for implementation details...
+
+[Spawns codebase-locator and codebase-analyzer agents]
+
+Based on my research, I found:
+- Current quickpick implementation at `src/notebooks/quickpick.ts:45`
+- Menu patterns in `src/ui/menus/` we can follow
+- Context assembly in `src/assistant/context.ts:120`
+
+Technical questions:
+- Should the menu be a VS Code TreeView or WebView panel?
+- How should we handle state persistence for settings?
+
+[Planning continues focused on technical implementation...]
 ```

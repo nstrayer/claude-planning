@@ -6,6 +6,7 @@ Planning and implementation workflows for Claude Code. Provides slash commands a
 
 | Command | Description | Variants |
 |---------|-------------|----------|
+| `/create_prd` | Interactive PRD creation through requirement gathering | - |
 | `/create_plan` | Interactive planning with codebase research | `_nt`, `_generic` |
 | `/implement_plan` | Execute plans phase-by-phase with verification | - |
 | `/validate_plan` | Verify implementation against success criteria | - |
@@ -15,6 +16,25 @@ Planning and implementation workflows for Claude Code. Provides slash commands a
 **Variant suffixes:**
 - `_nt` - No thoughts directory required
 - `_generic` - Minimal project-specific assumptions
+
+### PRD Workflow
+
+Create PRDs before implementation plans for well-defined features:
+
+```bash
+# Create a PRD interactively (uses AskUserQuestion for structured gathering)
+/create_prd
+
+# Create implementation plan from PRD
+/create_plan thoughts/shared/prds/2026-01-12-feature.md
+```
+
+PRDs are stored in `thoughts/shared/prds/` and are detected by `/create_plan` via:
+- Frontmatter: `type: prd`
+- Path: `*/prds/*.md`
+- Filename: `*-prd.md`
+
+When a PRD is detected, `/create_plan` extracts requirements and focuses research on technical implementation.
 
 ## Agents
 
@@ -50,6 +70,7 @@ Some commands use a `thoughts/` directory for storing plans and research:
 thoughts/
 ├── shared/
 │   ├── plans/      # Implementation plans
+│   ├── prds/       # Product Requirements Documents
 │   └── research/   # Research documents
 ```
 
