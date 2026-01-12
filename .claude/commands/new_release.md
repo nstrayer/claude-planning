@@ -37,7 +37,35 @@ git status
 
 If any check fails, inform the user and stop. Do not proceed with the release.
 
-### Step 2: Find Latest Pre-release
+### Step 2: Update Plugin Version Date
+
+Update the plugin's date-based version in `.claude-plugin/marketplace.json` to today's date. This tells Claude Code that the plugin has been updated.
+
+```bash
+# Check current plugin version date
+cat .claude-plugin/marketplace.json | grep -A1 '"source"' | grep version
+```
+
+If the date is not today's date (YYYY-MM-DD format):
+1. Update the `version` field inside the `plugins` array to today's date
+2. Commit and push the change:
+
+```bash
+git add .claude-plugin/marketplace.json
+git commit -m "chore: update plugin version date"
+git push origin main
+```
+
+3. Wait for the pre-release workflow to complete:
+
+```bash
+# Watch for the workflow to finish (wait ~30 seconds, then check)
+gh run list --workflow=prerelease.yml --limit=1
+```
+
+If the version is already today's date, skip this step.
+
+### Step 3: Find Latest Pre-release
 
 ```bash
 gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | .tagName' | head -1
@@ -46,7 +74,7 @@ gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | 
 - If no pre-release exists, inform the user and stop
 - Show the user which pre-release will be promoted (e.g., `v1.0.2-pre` → `v1.0.2`)
 
-### Step 3: Confirm and Trigger Release
+### Step 4: Confirm and Trigger Release
 
 Show the user:
 ```
@@ -63,7 +91,7 @@ Then execute:
 gh workflow run release.yml
 ```
 
-### Step 4: Report Success
+### Step 5: Report Success
 
 ```
 Release workflow triggered!
