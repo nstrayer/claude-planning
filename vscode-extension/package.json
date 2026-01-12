@@ -91,7 +91,7 @@
       },
       {
         "command": "feedbackTags.submitToTerminal",
-        "title": "Submit Plan to Claude Code Terminal",
+        "title": "Submit feedback to Claude Code for plan iteration",
         "category": "Feedback",
         "icon": "$(terminal)"
       },

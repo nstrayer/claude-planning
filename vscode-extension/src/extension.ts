@@ -495,7 +495,7 @@ async function submitPlanToTerminal() {
     const filePath = editor.document.fileName;
 
     // Construct the command
-    const command = `/bootandshoe:iterate_plan ${filePath}`;
+    const command = `/bootandshoe:iterate_plan ${filePath} - address all feedback and update the plan accordingly.`;
 
     // Get all terminals
     const terminals = vscode.window.terminals;
