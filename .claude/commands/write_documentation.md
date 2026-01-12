@@ -1,97 +1,144 @@
 ---
-description: Generate comprehensive markdown documentation for all plugins in the marketplace
+description: Update README and docs to reflect current commands, agents, skills, and VSCode extension
 ---
 
-# Write Plugin Documentation
+# Update Documentation
 
-You are tasked with generating comprehensive documentation for all plugins in this marketplace.
+Sync README.md, docs/bootandshoe.md, and vscode-extension/README.md with current state.
 
-## Process:
+## Process
 
-1. **Read the marketplace configuration:**
-   - Read `.claude-plugin/marketplace.json` to get the list of all plugins
-   - Extract plugin metadata: name, description, version, author, category
+### Step 1: Gather Current State
 
-2. **For each plugin, gather information:**
-   - Read all command files from `{plugin}/commands/*.md`
-   - Read all agent files from `{plugin}/agents/*.md`
-   - Extract frontmatter metadata where available (description, model, etc.)
-   - Extract command/agent names, descriptions, and key features from content
+Read all source files in parallel:
 
-3. **Generate documentation file for each plugin:**
-   - Create `docs/{plugin-name}.md` for each plugin
-   - Use the existing `docs/bootandshoe.md` as a reference format
-   - Include:
-     - Plugin overview with metadata (category, version, author)
-     - Commands section with usage examples
-     - Agents section (if applicable) with use cases
-     - Requirements section (if applicable)
-   - Format:
-     ```markdown
-     # {Plugin Name} Plugin
+**Commands** (`bootandshoe/commands/*.md`):
+- Extract filename (command name)
+- Extract `description` from YAML frontmatter
+- Note variants by suffix: `_nt` (no thoughts), `_generic` (minimal assumptions)
 
-     **Category:** {category}
-     **Version:** {version}
-     **Author:** {author}
+**Agents** (`bootandshoe/agents/*.md`):
+- Extract filename (agent name)
+- Extract `description` from YAML frontmatter
+- Extract `tools` array from frontmatter if present
 
-     {description}
+**Skills** (`bootandshoe/skills/*.md`):
+- Extract filename (skill name)
+- Extract `description` from YAML frontmatter
 
-     ## Commands
+**VSCode Extension** (`vscode-extension/package.json`):
+- Extract `displayName`, `description`, `version`
+- Extract commands from `contributes.commands` array
+- Extract keybindings from `contributes.keybindings` array
+- Note any configuration options from `contributes.configuration`
 
-     ### `/{command-name}`
+### Step 2: Update README.md
 
-     {Description from frontmatter or content}
+The README uses these formats. Update each section to match current state:
 
-     **Features:**
-     - {List key features extracted from content}
+**Commands Reference table:**
+```markdown
+| Command | Description | Workflow Position |
+|---------|-------------|-------------------|
+| `/create_plan` | {frontmatter description} | Start of workflow |
+```
 
-     **Usage:**
-     ```bash
-     /{command-name} [args]
-     ```
+Group variants together. Workflow positions:
+- `Start of workflow` - planning commands
+- `After /create_plan` - iteration commands
+- `After plan approval` - implementation
+- `After implementation` - validation
+- `Any time` - research and utility commands
 
-     ---
+**Agents table:**
+```markdown
+| Agent | Purpose |
+|-------|---------|
+| `codebase-locator` | {frontmatter description} |
+```
 
-     ## Agents
+**If skills exist**, add a Skills section after Agents:
+```markdown
+## Skills
 
-     ### `{agent-name}`
+| Skill | Purpose |
+|-------|---------|
+| `spec-metadata` | {frontmatter description} |
+```
 
-     {Description}
+**Update the mermaid diagram** if workflow commands changed.
 
-     **Use when you need to:**
-     - {Use cases}
+### Step 3: Update docs/bootandshoe.md
 
-     **Tools:** {List from frontmatter if available}
+Uses similar table format but includes more detail:
 
-     ---
+**Commands table** includes Variants column:
+```markdown
+| Command | Description | Variants |
+|---------|-------------|----------|
+| `/create_plan` | {description} | `_nt`, `_generic` |
+```
 
-     ## Requirements
+**Agents tables** include Tools column, split into "Codebase Agents" and "Other Agents":
+```markdown
+| Agent | Purpose | Tools |
+|-------|---------|-------|
+| `codebase-locator` | {description} | Grep, Glob, LS |
+```
 
-     {Any special requirements or setup needed}
-     ```
+**Skills table:**
+```markdown
+| Skill | Purpose |
+|-------|---------|
+| `spec-metadata` | {description} |
+```
 
-4. **Update README.md:**
-   - Read the current `README.md`
-   - Update the "Available Plugins" section to include ALL plugins
-   - For each plugin:
-     - Add a subsection with plugin name
-     - Add a link to its documentation: `**[Full Documentation →](docs/{plugin-name}.md)**`
-     - Add a quick overview listing main commands and agents
-   - Ensure formatting is consistent
-   - Preserve existing content structure
+### Step 4: Update README.md VSCode Extension Section
 
-5. **Present results:**
-   - Show the user which documentation files were created/updated
-   - Display a summary of commands and agents documented per plugin
-   - Confirm README.md was updated
+If not present, add a "VSCode Extension" section after Key Principles:
 
-## Important Notes:
+```markdown
+## VSCode Extension
 
-- Extract actual functionality from command/agent content, don't make up features
-- Preserve any special instructions or requirements from command files
-- Be concise but comprehensive in descriptions
-- Use consistent formatting across all documentation files
-- If a plugin has no agents, omit the Agents section
-- If a plugin has no special requirements, omit the Requirements section
-- Commands with frontmatter descriptions should use those first
-- Look at command content to extract key features and usage patterns
+The [BootAndShoe Feedback Tags](vscode-extension/) extension provides IDE integration for the planning workflow.
+
+**Features:**
+- Add `<feedback>` tags to plan files for `/iterate_plan`
+- Submit plans directly to Claude Code terminal
+- Navigate between feedback items
+- Feedback explorer sidebar
+
+**Installation:** Available on [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=nstrayer.bootandshoe-feedback-tags) and [Open VSX](https://open-vsx.org/extension/nstrayer/bootandshoe-feedback-tags)
+
+**Key Commands:**
+| Command | Shortcut | Description |
+|---------|----------|-------------|
+| Add Feedback | `Cmd+Shift+F` | Wrap selection in feedback tags |
+| Add General Feedback | `Cmd+Shift+G` | Add file-level feedback |
+| Submit to Terminal | `Cmd+Shift+T` | Run iterate_plan in Claude Code |
+```
+
+### Step 5: Update vscode-extension/README.md
+
+Ensure the extension README reflects current state:
+- Update features list based on `contributes.commands`
+- Update keybindings table from `contributes.keybindings`
+- List any configuration options from `contributes.configuration`
+- Keep installation instructions current
+
+### Step 6: Report Changes
+
+List what was updated:
+- Commands added/removed
+- Agents added/removed
+- Skills added/removed
+- VSCode extension commands/keybindings changed
+- Sections modified
+
+## Important Notes
+
+- **Match existing format** - don't change the overall structure, just update tables
+- **Use frontmatter descriptions** - don't invent descriptions
+- **Preserve non-table content** - installation instructions, workflow diagram, examples, key principles
+- **Skip missing sections** - if no skills exist, don't add empty Skills section
+- **VSCode extension version** - extract from package.json, don't guess
