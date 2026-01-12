@@ -101,7 +101,25 @@ When user feedback introduces new technical considerations:
 3. **Wait for confirmation**: Only spawn web-search-researcher if user approves
 4. **Incorporate findings**: Update the plan with researched best practices
 
-### Step 3: Present Understanding and Approach
+### Step 3: Clarify Change Type (If Needed)
+
+If the type of change isn't clear from the feedback, use AskUserQuestion:
+
+```
+AskUserQuestion:
+Question: "What type of changes are needed?"
+Header: "Change type"
+multiSelect: true
+Options:
+- "Add new phase" - Insert additional implementation phase
+- "Modify existing phase" - Update details of current phase
+- "Update success criteria" - Change how we verify completion
+- "Adjust scope" - Change what's in/out of scope
+```
+
+Use the selected options to focus your understanding and research.
+
+### Step 4: Present Understanding and Approach
 
 Before making changes, confirm your understanding:
 
@@ -117,11 +135,26 @@ My research found:
 I plan to update the plan by:
 1. [Specific modification to make]
 2. [Another modification]
-
-Does this align with your intent?
 ```
 
-Get user confirmation before proceeding.
+Then use AskUserQuestion to confirm:
+
+```
+AskUserQuestion:
+Question: "Does this capture the changes you want?"
+Header: "Confirm"
+Options:
+- "Yes, make changes" - Proceed with updates
+- "Needs adjustment" - Will clarify what's different
+- "Research first" - Need more codebase investigation
+- "Cancel" - Don't make changes right now
+```
+
+**Based on response:**
+- If "Yes, make changes": Proceed to Step 5
+- If "Needs adjustment": Ask what's different, update understanding, re-confirm
+- If "Research first": Spawn additional codebase research agents, then re-present understanding
+- If "Cancel": Acknowledge and end gracefully without making edits
 
 ### Feedback Tag Processing
 
@@ -174,7 +207,7 @@ The actual feedback comment about the marked text
 
 Your response should acknowledge and address all feedback items before making changes.
 
-### Step 4: Update the Plan
+### Step 5: Update the Plan
 
 1. **Make focused, precise edits** to the existing plan:
    - Use the Edit tool for surgical changes
@@ -194,7 +227,7 @@ Your response should acknowledge and address all feedback items before making ch
    - Use `make` commands for automated verification
    - Keep language clear and actionable
 
-### Step 5: Review
+### Step 6: Review
 
 1. **Present the changes made**:
    ```

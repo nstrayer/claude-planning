@@ -152,13 +152,28 @@ After getting initial clarifications:
    **Design Options:**
    1. [Option A] - [pros/cons]
    2. [Option B] - [pros/cons]
-
-   **Open Questions:**
-   - [Technical uncertainty]
-   - [Design decision needed]
-
-   Which approach aligns best with your vision?
    ```
+
+   Then use AskUserQuestion for design selection:
+   ```
+   AskUserQuestion:
+   Question: "Which technical approach should we use?"
+   Header: "Approach"
+   Options: [Dynamically generated based on research - use 2-4 options]
+   - "[Option A name]" - [Brief advantage]
+   - "[Option B name]" - [Brief advantage]
+   - "Discuss trade-offs" - Need more information before deciding
+   - "Hybrid approach" - Combine elements from multiple options
+   ```
+
+   If "Discuss trade-offs" selected:
+   - Provide detailed comparison of options
+   - Re-ask the question after discussion
+
+   If "Hybrid approach" selected:
+   - Ask: "Which elements from each approach would you like to combine?"
+   - Collect freeform response
+   - Synthesize hybrid approach
 
 ### Step 3: Plan Structure Development
 
@@ -175,11 +190,25 @@ Once aligned on approach:
    1. [Phase name] - [what it accomplishes]
    2. [Phase name] - [what it accomplishes]
    3. [Phase name] - [what it accomplishes]
-
-   Does this phasing make sense? Should I adjust the order or granularity?
    ```
 
-2. **Get feedback on structure** before writing details
+2. **Use AskUserQuestion for structure approval**:
+   ```
+   AskUserQuestion:
+   Question: "Does this phase structure work?"
+   Header: "Structure"
+   Options:
+   - "Yes, proceed" - Write detailed plan with this structure
+   - "Adjust order" - Phases should be reordered
+   - "Split phases" - Some phases are too large
+   - "Merge phases" - Some phases should be combined
+   ```
+
+   If adjustment needed:
+   - Ask: "Which phases need adjustment and how?"
+   - Collect freeform response
+   - Re-present the updated structure
+   - Ask again until approved
 
 ### Step 4: Detailed Plan Writing
 

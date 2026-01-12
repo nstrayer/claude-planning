@@ -143,46 +143,43 @@ After getting initial clarifications:
 
 ### Proactive Web Research Suggestions
 
-During research and planning, proactively suggest web research when:
+During research and planning, proactively suggest web research when encountering unfamiliar technologies, best practices uncertainty, version-specific information needs, or security considerations.
 
-1. **Unfamiliar Technologies**: If the task involves technologies, libraries, or frameworks you're not confident about:
-   ```
-   I notice this involves [technology]. Would you like me to search the web for
-   current best practices for [specific aspect]?
-   ```
+Use AskUserQuestion to offer research:
+```
+AskUserQuestion:
+Question: "Should I research [specific topic] online?"
+Header: "Research"
+Options:
+- "Yes, research this" - Search for current best practices
+- "No, proceed" - Existing knowledge is sufficient
+- "Research something else" - Will specify different topic
+```
 
-2. **Best Practices Uncertainty**: When you're unsure about the recommended approach:
-   ```
-   There are multiple ways to implement [feature]. Would you like me to research
-   current industry best practices for [specific pattern]?
-   ```
+**When to trigger this question:**
 
-3. **Version-Specific Information**: When implementation might depend on specific versions:
-   ```
-   The approach may vary based on [library] version. Would you like me to check
-   the latest documentation for [specific feature]?
-   ```
+1. **Unfamiliar Technologies**: If the task involves technologies, libraries, or frameworks you're not confident about
 
-4. **Security Considerations**: When the feature has security implications:
-   ```
-   This involves [sensitive area]. Would you like me to research current security
-   best practices for [specific concern]?
-   ```
+2. **Best Practices Uncertainty**: When you're unsure about the recommended approach
 
-**When suggesting research**:
-- Be specific about what you'd search for
-- Explain why the research would be valuable
-- Wait for user confirmation before spawning web-search-researcher
-- If approved, use the web-search-researcher agent with a focused query
+3. **Version-Specific Information**: When implementation might depend on specific versions
+
+4. **Security Considerations**: When the feature has security implications
+
+**After user responds:**
+- If "Yes, research this": Spawn web-search-researcher agent with focused query
+- If "No, proceed": Continue with existing knowledge
+- If "Research something else": Ask what topic they'd like researched, then spawn agent
 
 **Example**:
 ```
 I see we're implementing webhook signature verification. I have general knowledge
-about this, but webhook security practices evolve. Would you like me to search
-the web for current best practices for webhook signature verification in 2026?
-
-This could help ensure we're using the most secure approach.
+about this, but webhook security practices evolve.
 ```
+Then use AskUserQuestion with:
+- Question: "Should I research webhook signature verification best practices online?"
+- Header: "Research"
+- Options as above
 
 4. **Present findings and design options**:
    ```
@@ -195,13 +192,28 @@ This could help ensure we're using the most secure approach.
    **Design Options:**
    1. [Option A] - [pros/cons]
    2. [Option B] - [pros/cons]
-
-   **Open Questions:**
-   - [Technical uncertainty]
-   - [Design decision needed]
-
-   Which approach aligns best with your vision?
    ```
+
+   Then use AskUserQuestion for design selection:
+   ```
+   AskUserQuestion:
+   Question: "Which technical approach should we use?"
+   Header: "Approach"
+   Options: [Dynamically generated based on research - use 2-4 options]
+   - "[Option A name]" - [Brief advantage]
+   - "[Option B name]" - [Brief advantage]
+   - "Discuss trade-offs" - Need more information before deciding
+   - "Hybrid approach" - Combine elements from multiple options
+   ```
+
+   If "Discuss trade-offs" selected:
+   - Provide detailed comparison of options
+   - Re-ask the question after discussion
+
+   If "Hybrid approach" selected:
+   - Ask: "Which elements from each approach would you like to combine?"
+   - Collect freeform response
+   - Synthesize hybrid approach
 
 ### Step 3: Plan Structure Development
 
@@ -218,11 +230,25 @@ Once aligned on approach:
    1. [Phase name] - [what it accomplishes]
    2. [Phase name] - [what it accomplishes]
    3. [Phase name] - [what it accomplishes]
-
-   Does this phasing make sense? Should I adjust the order or granularity?
    ```
 
-2. **Get feedback on structure** before writing details
+2. **Use AskUserQuestion for structure approval**:
+   ```
+   AskUserQuestion:
+   Question: "Does this phase structure work?"
+   Header: "Structure"
+   Options:
+   - "Yes, proceed" - Write detailed plan with this structure
+   - "Adjust order" - Phases should be reordered
+   - "Split phases" - Some phases are too large
+   - "Merge phases" - Some phases should be combined
+   ```
+
+   If adjustment needed:
+   - Ask: "Which phases need adjustment and how?"
+   - Collect freeform response
+   - Re-present the updated structure
+   - Ask again until approved
 
 ### Step 4: Detailed Plan Writing
 

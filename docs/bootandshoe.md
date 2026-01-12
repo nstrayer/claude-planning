@@ -119,3 +119,39 @@ Task("codebase-analyzer", "Analyze how the session management works")
 2. **Precise references**: Agents return `file:line` references, not full contents
 3. **Document, don't critique**: Describe what exists without evaluation
 4. **Separated verification**: Plans distinguish automated checks from manual testing
+
+## Interaction Patterns
+
+Commands use two interaction styles:
+
+### Structured (AskUserQuestion)
+
+Used for key decisions where clear choices improve workflow:
+
+| Command | Where Used |
+|---------|------------|
+| `/create_prd` | All phases - requirement gathering, user stories, success criteria |
+| `/validate_plan` | Manual verification collection, final sign-off |
+| `/review_plan` | Section-by-section feedback, final action selection |
+| `/create_plan` | Design options, phase structure approval, web research decisions |
+| `/iterate_plan` | Change type classification, understanding confirmation |
+
+Benefits:
+- Unambiguous responses
+- All critical steps addressed
+- Reduced cognitive load
+- Better decision tracking
+
+### Conversational (Freeform)
+
+Used for exploration and detailed explanations:
+- `/research_codebase` - Open-ended investigation
+- `/oneshot` - Quick execution without interaction
+- Summaries and explanations within all commands
+- Follow-up details when users select options indicating issues
+
+### Backwards Compatibility
+
+Legacy patterns still work:
+- `<feedback>` tags in `/review_plan` responses
+- Freeform text responses (via "Other" option)

@@ -81,7 +81,50 @@ For each phase in the plan:
    - Are there missing validations?
    - Could the implementation break existing functionality?
 
-### Step 3: Generate Validation Report
+### Step 3: Collect Manual Verification Results
+
+After presenting automated verification results, use AskUserQuestion to collect manual test outcomes:
+
+For each manual verification item in the plan's success criteria:
+
+1. **Present each test** with structured options:
+   ```
+   AskUserQuestion:
+   Question: "[Manual test description from plan]"
+   Header: "Manual test"
+   Options:
+   - "Passed" - Test completed successfully
+   - "Failed" - Test revealed issues (will document)
+   - "Skipped" - Unable to test at this time
+   - "N/A" - Not applicable to current implementation
+   ```
+
+2. **If any test failed**, follow up:
+   ```
+   AskUserQuestion:
+   Question: "What issue did you find during '[test name]'?"
+   Header: "Issue"
+   Options:
+   - "Functionality broken" - Feature doesn't work as expected
+   - "Performance issue" - Too slow or resource-intensive
+   - "UI/UX problem" - Works but user experience is poor
+   - "Edge case failure" - Works normally but fails in specific scenarios
+   ```
+   Then ask for details via freeform text.
+
+3. **Final sign-off**:
+   ```
+   AskUserQuestion:
+   Question: "What is the validation status?"
+   Header: "Status"
+   Options:
+   - "All passed - ready for merge" - Implementation is complete and verified
+   - "Issues found - needs fixes before merge" - Problems need to be addressed
+   - "Partially verified - some tests deferred" - Some tests couldn't be completed
+   - "Blocked - cannot complete validation" - Something prevents full validation
+   ```
+
+### Step 4: Generate Validation Report
 
 Create comprehensive validation summary:
 
@@ -113,14 +156,13 @@ Create comprehensive validation summary:
 - Missing index on foreign key could impact performance
 - No rollback handling in migration
 
-### Manual Testing Required:
-1. UI functionality:
-   - [ ] Verify [feature] appears correctly
-   - [ ] Test error states with invalid input
+### Manual Verification Results:
+| Test | Result | Notes |
+|------|--------|-------|
+| [Test 1] | Passed/Failed/Skipped/N/A | [Issue details if failed] |
+| [Test 2] | Passed/Failed/Skipped/N/A | [Issue details if failed] |
 
-2. Integration:
-   - [ ] Confirm works with existing [component]
-   - [ ] Check performance with large datasets
+### Final Status: [Selected sign-off option]
 
 ### Recommendations:
 - Address linting warnings before merge
