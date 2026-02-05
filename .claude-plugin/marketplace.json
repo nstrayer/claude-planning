@@ -13,7 +13,7 @@
       "description": "Commands and agents for codebase research, planning, and implementation workflows",
       "source": "./bootandshoe",
       "category": "development",
-      "version": "2026-01-12",
+      "version": "2026-02-05",
       "author": {
         "name": "nstrayer"
       }
