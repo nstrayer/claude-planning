@@ -44,17 +44,17 @@ Specialized agents for the Task tool. All agents are documentarians—they descr
 
 | Agent | Purpose | Tools |
 |-------|---------|-------|
-| `codebase-locator` | Find where code lives | Grep, Glob, LS |
-| `codebase-analyzer` | Understand how code works | Read, Grep, Glob, LS |
-| `codebase-pattern-finder` | Find similar implementations | Grep, Glob, Read, LS |
+| `bootandshoe:codebase-locator` | Find where code lives | Grep, Glob, LS |
+| `bootandshoe:codebase-analyzer` | Understand how code works | Read, Grep, Glob, LS |
+| `bootandshoe:codebase-pattern-finder` | Find similar implementations | Grep, Glob, Read, LS |
 
 ### Other Agents
 
 | Agent | Purpose | Tools |
 |-------|---------|-------|
-| `thoughts-locator` | Find documents in thoughts/ | Grep, Glob, LS |
-| `thoughts-analyzer` | Extract insights from thoughts/ | Read, Grep, Glob, LS |
-| `web-search-researcher` | Research external documentation | WebSearch, WebFetch |
+| `bootandshoe:thoughts-locator` | Find documents in thoughts/ | Grep, Glob, LS |
+| `bootandshoe:thoughts-analyzer` | Extract insights from thoughts/ | Read, Grep, Glob, LS |
+| `bootandshoe:web-search-researcher` | Research external documentation | WebSearch, WebFetch |
 
 ## Skills
 
@@ -109,8 +109,8 @@ Commands with `_nt` suffix work without this directory. You can also specify cus
 
 ```python
 # Spawn multiple agents in parallel
-Task("codebase-locator", "Find all files related to user authentication")
-Task("codebase-analyzer", "Analyze how the session management works")
+Task("bootandshoe:codebase-locator", "Find all files related to user authentication")
+Task("bootandshoe:codebase-analyzer", "Analyze how the session management works")
 ```
 
 ## Key Principles

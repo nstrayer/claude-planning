@@ -19,8 +19,8 @@ If no plan path provided, ask for one.
 ## Token-Efficient Implementation
 
 **Before each phase**, spawn agents for reconnaissance instead of reading all files:
-- `codebase-pattern-finder`: Find similar implementations to model after
-- `codebase-analyzer`: Understand components you'll modify
+- `bootandshoe:codebase-pattern-finder`: Find similar implementations to model after
+- `bootandshoe:codebase-analyzer`: Understand components you'll modify
 
 **Only read files directly** when you're about to edit them.
 
@@ -76,7 +76,7 @@ do not check off items in the manual testing steps until confirmed by the user.
 ## If You Get Stuck
 
 When something isn't working as expected:
-- Use `codebase-analyzer` to understand the relevant code (don't read everything into main context)
+- Use `bootandshoe:codebase-analyzer` to understand the relevant code (don't read everything into main context)
 - Consider if the codebase has evolved since the plan was written
 - Present the mismatch clearly and ask for guidance
 

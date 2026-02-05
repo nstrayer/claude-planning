@@ -3,9 +3,11 @@ description: Create detailed implementation plans with thorough research and ite
 model: opus
 ---
 
-# Implementation Plan
+# Implementation Plan (Plan Mode)
 
 You are tasked with creating detailed implementation plans through an interactive, iterative process. You should be skeptical, thorough, and work collaboratively with the user to produce high-quality technical specifications.
+
+**This command runs within plan mode.** Write the plan to the plan file designated by plan mode (the path provided in the plan mode system message). When finished, call `ExitPlanMode` so the user can review and approve in VS Code.
 
 ## Initial Response
 
@@ -35,7 +37,7 @@ Then wait for the user's input.
 
 ## Process Steps
 
-### Step 1: Context Gathering & Initial Analysis
+### Phase 1: Understanding - Context Gathering & Initial Analysis
 
 1. **Read all mentioned files immediately and FULLY**:
    - Task description files
@@ -58,21 +60,21 @@ After reading mentioned files, check if any are PRD (Product Requirements Docume
 **If PRD detected**:
 - Acknowledge: "I see this is a PRD document. I'll extract the requirements and focus my research on technical implementation."
 - Extract and map PRD sections to plan sections:
-  - **Goals & Objectives** → Plan Overview + Desired End State
-  - **User Stories & Use Cases** → Guide phase breakdown
-  - **Functional Requirements** → Technical implementation details
-  - **Acceptance Criteria** → Plan success criteria (manual verification)
-  - **Technical Considerations** → Implementation approach
-  - **Out of Scope** → Plan's "What We're NOT Doing"
+  - **Goals & Objectives** -> Plan Overview + Desired End State
+  - **User Stories & Use Cases** -> Guide phase breakdown
+  - **Functional Requirements** -> Technical implementation details
+  - **Acceptance Criteria** -> Plan success criteria (manual verification)
+  - **Technical Considerations** -> Implementation approach
+  - **Out of Scope** -> Plan's "What We're NOT Doing"
 - **Skip questions about**: User needs, feature goals, scope boundaries (already documented in PRD)
 - **Focus research and questions on**: Technical implementation details, code patterns to follow, architecture decisions, integration points
 
 2. **Spawn initial research tasks to gather context**:
    Before asking the user any questions, use specialized agents to research in parallel:
 
-   - Use the **codebase-locator** agent to find all files related to the task
-   - Use the **codebase-analyzer** agent to understand how the current implementation works
-   - If relevant, use the **thoughts-locator** agent to find any existing thoughts documents about this feature
+   - Use the **bootandshoe:codebase-locator** agent to find all files related to the task
+   - Use the **bootandshoe:codebase-analyzer** agent to understand how the current implementation works
+   - If relevant, use the **bootandshoe:thoughts-locator** agent to find any existing thoughts documents about this feature
 
    These agents will:
    - Find relevant source files, configs, and tests
@@ -107,7 +109,7 @@ After reading mentioned files, check if any are PRD (Product Requirements Docume
 
    Only ask questions that you genuinely cannot answer through code investigation.
 
-### Step 2: Research & Discovery
+### Phase 2: Design - Research & Discovery
 
 After getting initial clarifications:
 
@@ -117,20 +119,18 @@ After getting initial clarifications:
    - Read the specific files/directories they mention
    - Only proceed once you've verified the facts yourself
 
-2. **Create a research todo list** using TodoWrite to track exploration tasks
-
-3. **Spawn parallel sub-tasks for comprehensive research**:
+2. **Spawn parallel sub-tasks for comprehensive research**:
    - Create multiple Task agents to research different aspects concurrently
    - Use the right agent for each type of research:
 
    **For deeper investigation:**
-   - **codebase-locator** - To find more specific files (e.g., "find all files that handle [specific component]")
-   - **codebase-analyzer** - To understand implementation details (e.g., "analyze how [system] works")
-   - **codebase-pattern-finder** - To find similar features we can model after
+   - **bootandshoe:codebase-locator** - To find more specific files (e.g., "find all files that handle [specific component]")
+   - **bootandshoe:codebase-analyzer** - To understand implementation details (e.g., "analyze how [system] works")
+   - **bootandshoe:codebase-pattern-finder** - To find similar features we can model after
 
    **For historical context:**
-   - **thoughts-locator** - To find any research, plans, or decisions about this area
-   - **thoughts-analyzer** - To extract key insights from the most relevant documents
+   - **bootandshoe:thoughts-locator** - To find any research, plans, or decisions about this area
+   - **bootandshoe:thoughts-analyzer** - To extract key insights from the most relevant documents
 
    Each agent knows how to:
    - Find the right files and code patterns
@@ -175,11 +175,15 @@ After getting initial clarifications:
    - Collect freeform response
    - Synthesize hybrid approach
 
-### Step 3: Plan Structure Development
+### Phase 3: Review - Plan Structure Development
 
 Once aligned on approach:
 
-1. **Create initial plan outline**:
+1. **Read critical files identified by agents**:
+   - Read any remaining files that are essential for writing accurate plan details
+   - Verify specific code patterns and APIs you'll reference in the plan
+
+2. **Create initial plan outline**:
    ```
    Here's my proposed plan structure:
 
@@ -192,7 +196,7 @@ Once aligned on approach:
    3. [Phase name] - [what it accomplishes]
    ```
 
-2. **Use AskUserQuestion for structure approval**:
+3. **Use AskUserQuestion for structure approval**:
    ```
    AskUserQuestion:
    Question: "Does this phase structure work?"
@@ -210,15 +214,11 @@ Once aligned on approach:
    - Re-present the updated structure
    - Ask again until approved
 
-### Step 4: Detailed Plan Writing
+### Phase 4: Final Plan - Detailed Plan Writing
 
 After structure approval:
 
-1. **Write the plan** to `thoughts/shared/plans/YYYY-MM-DD-description.md`
-   - Format: `YYYY-MM-DD-description.md` where:
-     - YYYY-MM-DD is today's date
-     - description is a brief kebab-case description
-   - Example: `2025-01-08-improve-error-handling.md`
+1. **Write the plan** to the plan file designated by plan mode (the path provided in the plan mode system message).
 2. **Use this template structure**:
 
 ````markdown
@@ -325,27 +325,16 @@ status: draft
 - Similar implementation: `[file:line]`
 ````
 
-### Step 5: Review
+### Phase 5: Exit Plan Mode
 
-1. **Present the draft plan location**:
-   ```
-   I've created the initial implementation plan at:
-   `thoughts/shared/plans/YYYY-MM-DD-description.md`
+After writing the plan:
 
-   Please review it and let me know:
-   - Are the phases properly scoped?
-   - Are the success criteria specific enough?
-   - Any technical details that need adjustment?
-   - Missing edge cases or considerations?
-   ```
+1. **Call `ExitPlanMode`** so the user can review and approve the plan in VS Code.
 
-3. **Iterate based on feedback** - be ready to:
-   - Add missing phases
-   - Adjust technical approach
-   - Clarify success criteria (both automated and manual)
-   - Add/remove scope items
-
-4. **Continue refining** until the user is satisfied
+   The user will see the plan file and can:
+   - Approve the plan to proceed to implementation
+   - Add comments or feedback for iteration
+   - Reject and provide alternative direction
 
 ## Important Guidelines
 
@@ -373,12 +362,7 @@ status: draft
    - Think about edge cases
    - Include "what we're NOT doing"
 
-5. **Track Progress**:
-   - Use TodoWrite to track planning tasks
-   - Update todos as you complete research
-   - Mark planning tasks complete when done
-
-6. **No Open Questions in Final Plan**:
+5. **No Open Questions in Final Plan**:
    - If you encounter open questions during planning, STOP
    - Research or ask for clarification immediately
    - Do NOT write the plan with unresolved questions
@@ -485,4 +469,6 @@ Assistant: Let me read that requirements file completely first...
 Based on the requirements, I understand we need to track parent-child relationships for sub-task events. Before I start planning, I have some questions...
 
 [Interactive process continues...]
+[Plan written to plan mode file]
+[ExitPlanMode called]
 ```

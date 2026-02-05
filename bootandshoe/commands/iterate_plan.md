@@ -3,9 +3,11 @@ description: Iterate on existing implementation plans with thorough research and
 model: opus
 ---
 
-# Iterate Implementation Plan
+# Iterate Implementation Plan (Plan Mode)
 
 You are tasked with updating existing implementation plans based on user feedback. You should be skeptical, thorough, and ensure changes are grounded in actual codebase reality.
+
+**This command runs within plan mode.** Read the existing plan, make updates, and write the result to the plan file designated by plan mode (the path provided in the plan mode system message). When finished, call `ExitPlanMode` so the user can review and approve in VS Code.
 
 ## Initial Response
 
@@ -63,30 +65,28 @@ When this command is invoked:
 
 If the user's feedback requires understanding new code patterns or validating assumptions:
 
-1. **Create a research todo list** using TodoWrite
-
-2. **Spawn parallel sub-tasks for research**:
+1. **Spawn parallel sub-tasks for research**:
    Use the right agent for each type of research:
 
    **For code investigation:**
-   - **codebase-locator** - To find relevant files
-   - **codebase-analyzer** - To understand implementation details
-   - **codebase-pattern-finder** - To find similar patterns
+   - **bootandshoe:codebase-locator** - To find relevant files
+   - **bootandshoe:codebase-analyzer** - To understand implementation details
+   - **bootandshoe:codebase-pattern-finder** - To find similar patterns
 
    **For historical context:**
-   - **thoughts-locator** - To find related research or decisions
-   - **thoughts-analyzer** - To extract insights from documents
+   - **bootandshoe:thoughts-locator** - To find related research or decisions
+   - **bootandshoe:thoughts-analyzer** - To extract insights from documents
 
    **Be EXTREMELY specific about directories**:
    - If the change involves "WUI", specify `bootandshoe-wui/` directory
    - If it involves "daemon", specify `hld/` directory
    - Include full path context in prompts
 
-3. **Read any new files identified by research**:
+2. **Read any new files identified by research**:
    - Read them FULLY into the main context
    - Cross-reference with the plan requirements
 
-4. **Wait for ALL sub-tasks to complete** before proceeding
+3. **Wait for ALL sub-tasks to complete** before proceeding
 
 ### Web Research for Plan Updates
 
@@ -98,7 +98,7 @@ When user feedback introduces new technical considerations:
    Your feedback about [topic] is a good point. Would you like me to search the
    web for current best practices on [specific aspect] before updating the plan?
    ```
-3. **Wait for confirmation**: Only spawn web-search-researcher if user approves
+3. **Wait for confirmation**: Only spawn bootandshoe:web-search-researcher if user approves
 4. **Incorporate findings**: Update the plan with researched best practices
 
 ### Step 3: Clarify Change Type (If Needed)
@@ -209,7 +209,7 @@ Your response should acknowledge and address all feedback items before making ch
 
 ### Step 5: Update the Plan
 
-1. **Make focused, precise edits** to the existing plan:
+1. **Make focused, precise edits** to the plan file:
    - Use the Edit tool for surgical changes
    - Maintain the existing structure unless explicitly changing it
    - Keep all file:line references accurate
@@ -227,11 +227,13 @@ Your response should acknowledge and address all feedback items before making ch
    - Use `make` commands for automated verification
    - Keep language clear and actionable
 
-### Step 6: Review
+### Step 6: Exit Plan Mode
+
+After updating the plan:
 
 1. **Present the changes made**:
    ```
-   I've updated the plan at `thoughts/shared/plans/[filename].md`
+   I've updated the plan.
 
    Changes made:
    - [Specific change 1]
@@ -240,11 +242,9 @@ Your response should acknowledge and address all feedback items before making ch
    The updated plan now:
    - [Key improvement]
    - [Another improvement]
-
-   Would you like any further adjustments?
    ```
 
-3. **Be ready to iterate further** based on feedback
+2. **Call `ExitPlanMode`** so the user can review the updated plan in VS Code.
 
 ## Important Guidelines
 
@@ -272,12 +272,7 @@ Your response should acknowledge and address all feedback items before making ch
    - Allow course corrections
    - Don't disappear into research without communicating
 
-5. **Track Progress**:
-   - Use TodoWrite to track update tasks if complex
-   - Update todos as you complete research
-   - Mark tasks complete when done
-
-6. **No Open Questions**:
+5. **No Open Questions**:
    - If the requested change raises questions, ASK
    - Research or get clarification immediately
    - Do NOT update the plan with unresolved questions
@@ -320,7 +315,7 @@ When spawning research sub-tasks:
 **Scenario 1: User provides everything upfront**
 ```
 User: /iterate_plan thoughts/shared/plans/2025-10-16-feature.md - add phase for error handling
-Assistant: [Reads plan, researches error handling patterns, updates plan]
+Assistant: [Reads plan, researches error handling patterns, updates plan, calls ExitPlanMode]
 ```
 
 **Scenario 2: User provides just plan file**
@@ -328,7 +323,7 @@ Assistant: [Reads plan, researches error handling patterns, updates plan]
 User: /iterate_plan thoughts/shared/plans/2025-10-16-feature.md
 Assistant: I've found the plan. What changes would you like to make?
 User: Split Phase 2 into two phases - one for backend, one for frontend
-Assistant: [Proceeds with update]
+Assistant: [Proceeds with update, calls ExitPlanMode]
 ```
 
 **Scenario 3: User provides no arguments**
@@ -338,5 +333,5 @@ Assistant: Which plan would you like to update? Please provide the path...
 User: thoughts/shared/plans/2025-10-16-feature.md
 Assistant: I've found the plan. What changes would you like to make?
 User: Add more specific success criteria
-Assistant: [Proceeds with update]
+Assistant: [Proceeds with update, calls ExitPlanMode]
 ```

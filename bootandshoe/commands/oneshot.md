@@ -25,8 +25,8 @@ When invoked with a task description:
 
 1. **Read any mentioned files FULLY** (no limit/offset)
 2. **Quick research** using parallel sub-agents:
-   - Use **codebase-locator** to find relevant files
-   - Use **codebase-analyzer** if you need to understand existing patterns
+   - Use **bootandshoe:codebase-locator** to find relevant files
+   - Use **bootandshoe:codebase-analyzer** if you need to understand existing patterns
 3. **Assess complexity** based on:
    - Number of files that need changes
    - Whether changes span multiple domains (DB, API, UI, etc.)

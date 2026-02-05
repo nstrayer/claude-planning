@@ -30,9 +30,9 @@ When spawning agents via Task tool:
 
 ```python
 # Spawn in parallel for efficiency
-Task("codebase-locator", "Find all authentication-related files")
-Task("codebase-analyzer", "Analyze how the login flow works")
-Task("codebase-pattern-finder", "Find similar form validation patterns")
+Task("bootandshoe:codebase-locator", "Find all authentication-related files")
+Task("bootandshoe:codebase-analyzer", "Analyze how the login flow works")
+Task("bootandshoe:codebase-pattern-finder", "Find similar form validation patterns")
 ```
 
 Agents are documentarians - they describe what exists without suggesting improvements.
