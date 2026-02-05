@@ -12,7 +12,7 @@ const KNOWN_TOOLS = [
   'Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep',
   'Task', 'TodoWrite', 'WebFetch', 'WebSearch',
   'NotebookEdit', 'BashOutput', 'KillBash', 'LS',
-  'SlashCommand', 'ExitPlanMode'
+  'SlashCommand', 'EnterPlanMode', 'ExitPlanMode'
 ];
 
 // Valid model identifiers
