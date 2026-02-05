@@ -10,13 +10,21 @@ You are tasked with implementing an approved technical plan from `thoughts/share
 
 When given a plan path:
 - Read the plan completely and check for any existing checkmarks (- [x])
-- Read any referenced requirements and all files mentioned in the plan
-- **Read files fully** - never use limit/offset parameters, you need complete context
-- Think deeply about how the pieces fit together
+- Read any referenced requirements documents
 - Create a todo list to track your progress
-- Start implementing if you understand what needs to be done
+- Start implementing phase by phase
 
 If no plan path provided, ask for one.
+
+## Token-Efficient Implementation
+
+**Before each phase**, spawn agents for reconnaissance instead of reading all files:
+- `codebase-pattern-finder`: Find similar implementations to model after
+- `codebase-analyzer`: Understand components you'll modify
+
+**Only read files directly** when you're about to edit them.
+
+**For phases with 3+ independent changes**, spawn parallel `general-purpose` agents to implement different parts concurrently.
 
 ## Implementation Philosophy
 
@@ -68,11 +76,9 @@ do not check off items in the manual testing steps until confirmed by the user.
 ## If You Get Stuck
 
 When something isn't working as expected:
-- First, make sure you've read and understood all the relevant code
+- Use `codebase-analyzer` to understand the relevant code (don't read everything into main context)
 - Consider if the codebase has evolved since the plan was written
 - Present the mismatch clearly and ask for guidance
-
-Use sub-tasks sparingly - mainly for targeted debugging or exploring unfamiliar territory.
 
 ## Resuming Work
 
