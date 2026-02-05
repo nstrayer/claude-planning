@@ -1,20 +1,27 @@
 ---
-description: Implement technical plans from thoughts/shared/plans with verification
+description: Implement approved technical plans with phased verification
 ---
 
 # Implement Plan
 
-You are tasked with implementing an approved technical plan from `thoughts/shared/plans/`. These plans contain phases with specific changes and success criteria.
+You are tasked with implementing an approved technical plan. Plans may come from various sources:
+- A plan mode file path (from native plan mode via `/create_plan`)
+- `thoughts/shared/plans/` directory (traditional location)
+- Any user-provided path containing a plan with `type: implementation-plan` frontmatter
 
 ## Getting Started
 
 When given a plan path:
 - Read the plan completely and check for any existing checkmarks (- [x])
+- Validate it looks like an implementation plan (has phases, success criteria, etc.)
 - Read any referenced requirements documents
 - Create a todo list to track your progress
 - Start implementing phase by phase
 
-If no plan path provided, ask for one.
+If no plan path provided:
+- Check if the user just approved a plan via plan mode (they may reference it)
+- Look for recent plans in `thoughts/shared/plans/`
+- Otherwise, ask the user for the plan path
 
 ## Token-Efficient Implementation
 

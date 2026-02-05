@@ -35,18 +35,24 @@ For deeper analysis, try: `/create_plan think deeply about path/to/requirements.
 
 Then wait for the user's input.
 
+## Token-Efficient Research
+
+Planning requires deep understanding, but that understanding should come from **agent reconnaissance**, not reading every file into main context:
+
+- **Read directly**: User-provided files (requirements, PRDs, task descriptions) and files you'll cite in the plan
+- **Use agents for**: Codebase exploration, finding patterns, understanding existing implementations
+- **Trust agent summaries**: Agents return file:line references and explanations -- don't re-read files just to confirm what they reported
+- **Only verify directly**: When agent findings seem surprising or when you need exact code snippets for the plan
+
 ## Process Steps
 
 ### Phase 1: Understanding - Context Gathering & Initial Analysis
 
-1. **Read all mentioned files immediately and FULLY**:
-   - Task description files
-   - Research documents
-   - Related implementation plans
-   - Any JSON/data files mentioned
+1. **Read user-provided input files immediately and FULLY**:
+   - Task description files, requirements documents, PRDs
    - **IMPORTANT**: Use the Read tool WITHOUT limit/offset parameters to read entire files
-   - **CRITICAL**: DO NOT spawn sub-tasks before reading these files yourself in the main context
-   - **NEVER** read files partially - if a file is mentioned, read it completely
+   - These are your task definition -- you need them in main context
+   - For codebase exploration, use agents instead (see step 2)
 
 ### PRD Detection and Handling
 
@@ -81,10 +87,10 @@ After reading mentioned files, check if any are PRD (Product Requirements Docume
    - Trace data flow and key functions
    - Return detailed explanations with file:line references
 
-3. **Read all files identified by research tasks**:
-   - After research tasks complete, read ALL files they identified as relevant
-   - Read them FULLY into the main context
-   - This ensures you have complete understanding before proceeding
+3. **Synthesize agent findings**:
+   - Trust agent summaries and file:line references -- don't re-read everything into main context
+   - Only read specific files when you need to verify surprising findings or capture exact code patterns
+   - Agents are designed to return the information you need; re-reading their findings wastes tokens
 
 4. **Analyze and verify understanding**:
    - Cross-reference the task requirements with actual code
@@ -219,9 +225,10 @@ Then use AskUserQuestion with:
 
 Once aligned on approach:
 
-1. **Read critical files identified by agents**:
-   - Read any remaining files that are essential for writing accurate plan details
-   - Verify specific code patterns and APIs you'll reference in the plan
+1. **Read only the files you'll reference in the plan**:
+   - Read files where you need to cite exact code patterns, APIs, or line numbers
+   - Use `bootandshoe:codebase-pattern-finder` for files you haven't examined yet
+   - Don't read files just for general context -- agent summaries cover that
 
 2. **Create initial plan outline**:
    ```
@@ -391,11 +398,11 @@ After writing the plan:
    - Work collaboratively
 
 3. **Be Thorough**:
-   - Read all context files COMPLETELY before planning
+   - Read user-provided input files completely; use agents for codebase research
    - Research actual code patterns using parallel sub-tasks
    - Include specific file paths and line numbers
    - Write measurable success criteria with clear automated vs manual distinction
-   - automated steps should use `make` whenever possible - for example `make -C bootandshoe-wui check` instead of `cd bootandshoe-wui && bun run fmt`
+   - Automated steps should use `make` whenever possible - for example `make -C bootandshoe-wui check` instead of `cd bootandshoe-wui && bun run fmt`
 
 4. **Be Practical**:
    - Focus on incremental, testable changes

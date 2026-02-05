@@ -8,7 +8,7 @@ Planning and implementation workflows for Claude Code. Provides slash commands a
 |---------|-------------|----------|
 | `/create_prd` | Interactive PRD creation through requirement gathering | - |
 | `/create_plan` | Interactive planning with codebase research | `_nt`, `_generic` |
-| `/implement_plan` | Execute plans phase-by-phase with verification | - |
+| `/implement_plan` | Execute plans phase-by-phase with verification (any source) | - |
 | `/validate_plan` | Verify implementation against success criteria | - |
 | `/iterate_plan` | Update existing plans with new information | `_nt` |
 | `/research_codebase` | Spawn parallel agents for codebase research | `_nt`, `_generic` |
@@ -81,14 +81,15 @@ Commands with `_nt` suffix work without this directory. You can also specify cus
 ### Planning Workflow
 
 ```bash
-# Create a plan (interactive)
+# Create a plan (interactive, runs in plan mode)
 /create_plan
 
 # Create plan from requirements file
 /create_plan path/to/requirements.md
 
-# Implement the plan
-/implement_plan thoughts/shared/plans/2025-01-08-feature.md
+# Implement - accepts plans from any source
+/implement_plan thoughts/shared/plans/2025-01-08-feature.md   # traditional
+/implement_plan .claude/plan.md                                 # plan mode path
 
 # Validate implementation
 /validate_plan thoughts/shared/plans/2025-01-08-feature.md
