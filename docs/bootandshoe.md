@@ -14,10 +14,10 @@ thoughts/features/{feature-slug}/
 ```
 
 **Commands:**
-1. `/start_feature [issue-url]` - Create feature directory with task.md and PRD
-2. `/create_plan @task.md` - Create plan (outputs to feature dir)
-3. `/implement_plan @task.md` - Execute plan (updates task.md)
-4. `/validate_feature @task.md` - Validate against PRD + plan
+1. `/feature_start [issue-url]` - Create feature directory with task.md and PRD
+2. `/feature_plan @task.md` - Create plan (outputs to feature dir)
+3. `/feature_implement @task.md` - Execute plan (updates task.md)
+4. `/feature_validate @task.md` - Validate against PRD + plan
 
 The task document maintains context across sessions and tracks status through: `planning` -> `planned` -> `implementing` -> `validating` -> `complete`
 
@@ -25,32 +25,32 @@ The task document maintains context across sessions and tracks status through: `
 
 | Command | Description |
 |---------|-------------|
-| `/start_feature` | Start a new feature with task document and PRD |
-| `/create_plan` | Interactive planning with codebase research |
-| `/implement_plan` | Execute plans phase-by-phase with verification |
-| `/validate_feature` | Validate implementation against PRD and plan |
-| `/validate_plan` | Verify implementation against plan success criteria |
-| `/iterate_plan` | Update existing plans with new information |
-| `/research_codebase` | Spawn parallel agents for codebase research |
+| `/feature_start` | Start a new feature with task document and PRD |
+| `/feature_plan` | Interactive planning with codebase research |
+| `/feature_implement` | Execute plans phase-by-phase with verification |
+| `/feature_iterate` | Update existing plans with new information |
+| `/feature_validate` | Validate implementation against PRD and plan |
+| `/research` | Spawn parallel agents for codebase research |
+| `/oneshot` | Quick plan-and-execute for simple tasks |
 
 ### Feature Workflow Example
 
 ```bash
 # Start a feature from a GitHub issue
-/start_feature https://github.com/org/repo/issues/123
+/feature_start https://github.com/org/repo/issues/123
 
 # Or start without an issue
-/start_feature
+/feature_start
 # Follow interactive prompts to create PRD
 
 # Create implementation plan
-/create_plan @thoughts/features/issue-123-auth/task.md
+/feature_plan @thoughts/features/issue-123-auth/task.md
 
 # Implement the plan
-/implement_plan @thoughts/features/issue-123-auth/task.md
+/feature_implement @thoughts/features/issue-123-auth/task.md
 
 # Validate against both PRD and plan
-/validate_feature @thoughts/features/issue-123-auth/task.md
+/feature_validate @thoughts/features/issue-123-auth/task.md
 ```
 
 ### Standalone Plan Workflow
@@ -59,20 +59,20 @@ For one-off tasks without the full feature structure:
 
 ```bash
 # Create a plan (interactive, runs in plan mode)
-/create_plan
+/feature_plan
 
 # Create plan from requirements file
-/create_plan path/to/requirements.md
+/feature_plan path/to/requirements.md
 
 # Implement - accepts plans from any source
-/implement_plan thoughts/shared/plans/2025-01-08-feature.md
-/implement_plan .claude/plan.md
+/feature_implement thoughts/shared/plans/2025-01-08-feature.md
+/feature_implement .claude/plan.md
 
 # Validate implementation
-/validate_plan thoughts/shared/plans/2025-01-08-feature.md
+/feature_validate thoughts/shared/plans/2025-01-08-feature.md
 ```
 
-PRDs in `thoughts/shared/prds/` are detected by `/create_plan` via:
+PRDs in `thoughts/shared/prds/` are detected by `/feature_plan` via:
 - Frontmatter: `type: prd`
 - Path: `*/prds/*.md`
 - Filename: `*-prd.md`
@@ -120,7 +120,7 @@ thoughts/
     └── research/       # Research documents
 ```
 
-Feature directories are created by `/start_feature`. Standalone plans can be stored in `thoughts/shared/plans/`.
+Feature directories are created by `/feature_start`. Standalone plans can be stored in `thoughts/shared/plans/`.
 
 ## Usage Examples
 
@@ -128,8 +128,11 @@ Feature directories are created by `/start_feature`. Standalone plans can be sto
 
 ```bash
 # Research a topic
-/research_codebase
+/research
 # Then: "How does authentication work?"
+
+# Research with feature context
+/research @thoughts/features/my-feature/task.md How does the API handle errors?
 ```
 
 ### Agent Spawning
@@ -157,12 +160,10 @@ Used for key decisions where clear choices improve workflow:
 
 | Command | Where Used |
 |---------|------------|
-| `/start_feature` | All phases - requirement gathering, user stories, success criteria |
-| `/validate_feature` | PRD compliance, manual verification, final sign-off |
-| `/validate_plan` | Manual verification collection, final sign-off |
-| `/review_plan` | Section-by-section feedback, final action selection |
-| `/create_plan` | Design options, phase structure approval, web research decisions |
-| `/iterate_plan` | Change type classification, understanding confirmation |
+| `/feature_start` | All phases - requirement gathering, user stories, success criteria |
+| `/feature_validate` | PRD compliance, manual verification, final sign-off |
+| `/feature_plan` | Design options, phase structure approval, web research decisions |
+| `/feature_iterate` | Change type classification, understanding confirmation |
 
 Benefits:
 - Unambiguous responses
@@ -173,7 +174,7 @@ Benefits:
 ### Conversational (Freeform)
 
 Used for exploration and detailed explanations:
-- `/research_codebase` - Open-ended investigation
+- `/research` - Open-ended investigation
 - `/oneshot` - Quick execution without interaction
 - Summaries and explanations within all commands
 - Follow-up details when users select options indicating issues
@@ -181,5 +182,5 @@ Used for exploration and detailed explanations:
 ### Backwards Compatibility
 
 Legacy patterns still work:
-- `<feedback>` tags in `/review_plan` responses
+- `<feedback>` tags in `/feature_iterate` responses
 - Freeform text responses (via "Other" option)

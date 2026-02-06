@@ -5,7 +5,7 @@ model: opus
 
 # One-Shot Task Execution
 
-You are tasked with planning and executing simple tasks in a single pass. Unlike `/create_plan` which is interactive and iterative, this command assesses complexity upfront and either executes immediately or redirects to the full planning workflow.
+You are tasked with planning and executing simple tasks in a single pass. Unlike `/feature_plan` which is interactive and iterative, this command assesses complexity upfront and either executes immediately or redirects to the full planning workflow.
 
 ## Complexity Threshold
 
@@ -15,9 +15,20 @@ This command is designed for **simple tasks only**:
 - **No significant architectural decisions required**
 - **Clear, well-defined requirements**
 
-If the task exceeds these thresholds, you MUST redirect the user to `/create_plan` instead.
+If the task exceeds these thresholds, you MUST redirect the user to `/feature_plan` instead.
 
 ## Workflow
+
+### Step 0: Check for Feature Context
+
+When invoked:
+
+1. **Check for task document context**:
+   - If input includes a path containing `/features/` and filename `task.md`:
+     - Read task.md completely
+     - Plan will be saved to feature directory: `thoughts/features/{slug}/oneshot-YYYY-MM-DD-description.md`
+     - After completion, update task.md with activity: `- YYYY-MM-DD: Oneshot task completed - [description]`
+   - Otherwise: Plan will be saved to `thoughts/shared/plans/YYYY-MM-DD-oneshot-description.md`
 
 ### Step 1: Understand the Task
 
@@ -49,7 +60,7 @@ This task is too complex for one-shot execution.
 - Files affected: [N]
 - Key decisions required: [list any]
 
-**Recommendation:** Use `/create_plan [task description]` to create a proper implementation plan with iterative refinement.
+**Recommendation:** Use `/feature_plan [task description]` to create a proper implementation plan with iterative refinement.
 ```
 
 Then STOP. Do not proceed with implementation.
@@ -58,7 +69,7 @@ Then STOP. Do not proceed with implementation.
 
 ### Step 3: Create Lightweight Plan
 
-Create a plan file at `thoughts/shared/plans/YYYY-MM-DD-oneshot-[description].md`:
+Create a plan file at the determined location (feature directory or `thoughts/shared/plans/`):
 
 ```markdown
 ---
@@ -132,9 +143,9 @@ After execution, provide a summary:
 
 ## Important Guidelines
 
-1. **Be conservative** - When in doubt about complexity, redirect to `/create_plan`
+1. **Be conservative** - When in doubt about complexity, redirect to `/feature_plan`
 2. **No back-and-forth** - This is one-shot; don't ask clarifying questions mid-task
-3. **Quick research only** - Don't spawn extensive research like `/create_plan` does
+3. **Quick research only** - Don't spawn extensive research like `/feature_plan` does
 4. **Always save the plan** - Even for simple tasks, create the plan file for history
 5. **Verify before reporting success** - Run automated checks before claiming completion
 

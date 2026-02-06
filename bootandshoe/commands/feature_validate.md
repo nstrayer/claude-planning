@@ -12,7 +12,7 @@ When invoked:
 
 1. **Determine input type**:
    - If task document path provided (contains `/features/` and filename is `task.md`): use it
-   - If plan path provided: use legacy validation (fall back to validate_plan behavior)
+   - If plan path provided: use legacy plan-only validation
    - If no path provided: ask user for the task document path
 
 2. **Load feature documents**:
@@ -202,7 +202,7 @@ Based on validation results:
 ## Legacy Fallback
 
 If a plan path is provided instead of a task document:
-- Proceed with plan-only validation (similar to `/validate_plan`)
+- Proceed with plan-only validation
 - Skip PRD compliance check
 - Skip task document updates
 
@@ -231,11 +231,8 @@ Always verify:
 ## Relationship to Other Commands
 
 Recommended feature workflow:
-1. `/start_feature` - Create feature directory with task.md and PRD
-2. `/create_plan @task.md` - Create implementation plan
-3. `/implement_plan @task.md` - Execute the implementation
+1. `/feature_start` - Create feature directory with task.md and PRD
+2. `/feature_plan @task.md` - Create implementation plan
+3. `/feature_implement @task.md` - Execute the implementation
 4. `/commit` - Create atomic commits for changes
-5. `/validate_feature @task.md` - Verify implementation (this command)
-6. `/describe_pr` - Generate PR description
-
-For non-feature workflows, use `/validate_plan` directly with a plan path.
+5. `/feature_validate @task.md` - Verify implementation (this command)

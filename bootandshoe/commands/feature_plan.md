@@ -29,9 +29,9 @@ Please provide:
 
 I'll analyze this information and work with you to create a comprehensive plan.
 
-Tip: You can also invoke this command with a task file directly: `/create_plan path/to/requirements.md`
-For feature-based planning: `/create_plan @thoughts/features/my-feature/task.md`
-For deeper analysis, try: `/create_plan think deeply about path/to/requirements.md`
+Tip: You can also invoke this command with a task file directly: `/feature_plan path/to/requirements.md`
+For feature-based planning: `/feature_plan @thoughts/features/my-feature/task.md`
+For deeper analysis, try: `/feature_plan think deeply about path/to/requirements.md`
 ```
 
 Then wait for the user's input.
@@ -552,7 +552,7 @@ tasks = [
 ## Example Interaction Flow
 
 ```
-User: /create_plan
+User: /feature_plan
 Assistant: I'll help you create a detailed implementation plan...
 
 User: We need to add parent-child tracking for Claude sub-tasks. See requirements.md
@@ -570,7 +570,7 @@ Based on the requirements, I understand we need to track parent-child relationsh
 ### Example: Planning from a PRD
 
 ```
-User: /create_plan thoughts/shared/prds/2026-01-12-notebook-assistant.md
+User: /feature_plan thoughts/shared/prds/2026-01-12-notebook-assistant.md
 Assistant: Let me read that file...
 
 [Reads file, detects `type: prd` in frontmatter]

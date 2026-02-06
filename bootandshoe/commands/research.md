@@ -1,5 +1,5 @@
 ---
-description: Document codebase as-is with thoughts directory for historical context
+description: Document codebase with optional feature context
 model: opus
 ---
 
@@ -18,9 +18,21 @@ You are tasked with conducting comprehensive research across the codebase to ans
 
 ## Initial Setup:
 
-When this command is invoked, respond with:
+When this command is invoked:
+
+1. **Check for task document context**:
+   - If input path contains `/features/` and filename is `task.md`:
+     - Read task.md completely
+     - Research will be saved to feature directory: `thoughts/features/{slug}/research/YYYY-MM-DD-topic.md`
+     - After completion, update task.md with activity: `- YYYY-MM-DD: Research completed - [topic]`
+   - Otherwise: Research will be saved to `thoughts/shared/research/YYYY-MM-DD-topic.md`
+
+2. **If no research question provided**, respond with:
 ```
 I'm ready to research the codebase. Please provide your research question or area of interest, and I'll analyze it thoroughly by exploring relevant components and connections.
+
+Tip: For feature-related research, include the task document:
+  /research @thoughts/features/my-feature/task.md How does authentication work?
 ```
 
 Then wait for the user's research query.
@@ -97,10 +109,12 @@ Only proceed with web research if the user confirms interest.
 
 5. **Gather metadata for the research document:**
    - Use the Skill tool to gather metadata: invoke the "spec-metadata" skill
-   - Filename: `thoughts/shared/research/YYYY-MM-DD-description.md`
-     - Format: `YYYY-MM-DD-description.md` where:
-       - YYYY-MM-DD is today's date
-       - description is a brief kebab-case description of the research topic
+   - Determine output path:
+     - **Feature context**: `thoughts/features/{slug}/research/YYYY-MM-DD-description.md`
+     - **Standalone**: `thoughts/shared/research/YYYY-MM-DD-description.md`
+   - Filename format: `YYYY-MM-DD-description.md` where:
+     - YYYY-MM-DD is today's date
+     - description is a brief kebab-case description of the research topic
      - Example: `2025-01-08-authentication-flow.md`
 
 6. **Generate research document:**

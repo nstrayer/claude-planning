@@ -5,7 +5,7 @@ description: Implement approved technical plans with phased verification
 # Implement Plan
 
 You are tasked with implementing an approved technical plan. Plans may come from various sources:
-- A plan mode file path (from native plan mode via `/create_plan`)
+- A plan mode file path (from native plan mode via `/feature_plan`)
 - `thoughts/shared/plans/` directory (traditional location)
 - Any user-provided path containing a plan with `type: implementation-plan` frontmatter
 
@@ -23,7 +23,7 @@ If no plan path provided:
 - Look for recent plans in `thoughts/shared/plans/`
 - Otherwise, ask the user for the plan path
 
-Tip: For feature-based implementation: `/implement_plan @thoughts/features/my-feature/task.md`
+Tip: For feature-based implementation: `/feature_implement @thoughts/features/my-feature/task.md`
 
 ### Task Document Handling
 

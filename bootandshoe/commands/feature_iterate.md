@@ -14,16 +14,27 @@ You are tasked with updating existing implementation plans based on user feedbac
 When this command is invoked:
 
 1. **Parse the input to identify**:
-   - Plan file path (e.g., `thoughts/shared/plans/2025-10-16-feature.md`)
+   - Task document path (e.g., `thoughts/features/my-feature/task.md`) OR
+   - Plan file path (e.g., `thoughts/shared/plans/2025-10-16-feature.md` or `thoughts/features/my-feature/plan.md`)
    - Requested changes/feedback
 
-2. **Handle different input scenarios**:
+2. **Handle task document input**:
+
+   If input path contains `/features/` and filename is `task.md`:
+   - Read task.md completely
+   - Extract plan path from `**Plan:**` field
+   - Use that plan for iteration
+   - After updates, add activity to task.md: `- YYYY-MM-DD: Plan updated`
+
+3. **Handle different input scenarios**:
 
    **If NO plan file provided**:
    ```
    I'll help you iterate on an existing implementation plan.
 
-   Which plan would you like to update? Please provide the path to the plan file (e.g., `thoughts/shared/plans/2025-10-16-feature.md`).
+   Which plan would you like to update? Please provide the path:
+   - Feature plan: `thoughts/features/{slug}/task.md` or `thoughts/features/{slug}/plan.md`
+   - Standalone plan: `thoughts/shared/plans/YYYY-MM-DD-feature.md`
 
    Tip: You can list recent plans with `ls -lt thoughts/shared/plans/ | head`
    ```
@@ -312,15 +323,15 @@ When spawning research sub-tasks:
 
 ## Example Interaction Flows
 
-**Scenario 1: User provides everything upfront**
+**Scenario 1: User provides task document**
 ```
-User: /iterate_plan thoughts/shared/plans/2025-10-16-feature.md - add phase for error handling
-Assistant: [Reads plan, researches error handling patterns, updates plan, calls ExitPlanMode]
+User: /feature_iterate @thoughts/features/user-auth/task.md - add phase for error handling
+Assistant: [Reads task.md, finds plan.md, researches error handling patterns, updates plan, updates task.md activity, calls ExitPlanMode]
 ```
 
-**Scenario 2: User provides just plan file**
+**Scenario 2: User provides plan file directly**
 ```
-User: /iterate_plan thoughts/shared/plans/2025-10-16-feature.md
+User: /feature_iterate thoughts/features/user-auth/plan.md
 Assistant: I've found the plan. What changes would you like to make?
 User: Split Phase 2 into two phases - one for backend, one for frontend
 Assistant: [Proceeds with update, calls ExitPlanMode]
@@ -328,10 +339,10 @@ Assistant: [Proceeds with update, calls ExitPlanMode]
 
 **Scenario 3: User provides no arguments**
 ```
-User: /iterate_plan
+User: /feature_iterate
 Assistant: Which plan would you like to update? Please provide the path...
-User: thoughts/shared/plans/2025-10-16-feature.md
-Assistant: I've found the plan. What changes would you like to make?
+User: @thoughts/features/user-auth/task.md
+Assistant: [Reads task.md, finds plan] I've found the plan. What changes would you like to make?
 User: Add more specific success criteria
-Assistant: [Proceeds with update, calls ExitPlanMode]
+Assistant: [Proceeds with update, updates task.md activity, calls ExitPlanMode]
 ```

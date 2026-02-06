@@ -36,7 +36,7 @@ I'll help you start a new feature. This creates:
 - A task document (task.md) to anchor context across sessions
 - A PRD through structured questioning
 
-You can also provide a GitHub issue URL: `/start_feature https://github.com/org/repo/issues/123`
+You can also provide a GitHub issue URL: `/feature_start https://github.com/org/repo/issues/123`
 
 Let's begin by understanding what you're building.
 ```
@@ -351,9 +351,9 @@ Files created:
 
 Next steps:
 1. Review and refine the PRD if needed
-2. Create implementation plan: /create_plan @thoughts/features/{slug}/task.md
-3. Implement: /implement_plan @thoughts/features/{slug}/task.md
-4. Validate: /validate_feature @thoughts/features/{slug}/task.md
+2. Create implementation plan: /feature_plan @thoughts/features/{slug}/task.md
+3. Implement: /feature_implement @thoughts/features/{slug}/task.md
+4. Validate: /feature_validate @thoughts/features/{slug}/task.md
 
 The task.md file will track status, decisions, and activity throughout the feature lifecycle.
 ```
@@ -418,4 +418,4 @@ If user selected an existing PRD:
 ## Example Interaction Flow
 
 ```
-User: /start_feature https://github.com/myorg/myrepo/issues/42
+User: /feature_start https://github.com/myorg/myrepo/issues/42
