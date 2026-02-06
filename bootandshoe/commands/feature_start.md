@@ -1,6 +1,5 @@
 ---
 description: Start a new feature with task document and PRD
-model: opus
 ---
 
 # Start Feature
