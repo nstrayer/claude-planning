@@ -496,7 +496,7 @@ async function submitPlanToTerminal() {
     const filePath = editor.document.fileName;
 
     // Construct the command
-    const command = `/bootandshoe:iterate_plan ${filePath} - address all feedback and update the plan accordingly.`;
+    const command = `/bootandshoe:feature_iterate ${filePath} - address all feedback and update the plan accordingly.`;
 
     // Get all terminals
     const terminals = vscode.window.terminals;
@@ -548,7 +548,7 @@ async function submitPlanToTerminal() {
 }
 
 /**
- * Copy iterate_plan command to clipboard
+ * Copy feature_iterate command to clipboard
  */
 async function copyIterateCommand() {
     const editor = vscode.window.activeTextEditor;
@@ -567,7 +567,7 @@ async function copyIterateCommand() {
     const filePath = editor.document.fileName;
 
     // Construct the command
-    const command = `/bootandshoe:iterate_plan ${filePath}`;
+    const command = `/bootandshoe:feature_iterate ${filePath}`;
 
     // Copy to clipboard
     await vscode.env.clipboard.writeText(command);
@@ -576,7 +576,7 @@ async function copyIterateCommand() {
 }
 
 /**
- * Copy implement_plan command to clipboard
+ * Copy feature_implement command to clipboard
  */
 async function copyImplementCommand() {
     const editor = vscode.window.activeTextEditor;
@@ -592,7 +592,7 @@ async function copyImplementCommand() {
     }
 
     const filePath = editor.document.fileName;
-    const command = `/bootandshoe:implement_plan ${filePath}`;
+    const command = `/bootandshoe:feature_implement ${filePath}`;
 
     await vscode.env.clipboard.writeText(command);
     vscode.window.showInformationMessage(`Copied: ${command}`);
@@ -649,7 +649,7 @@ async function copyFeedbackSummary() {
 }
 
 /**
- * Submit implement_plan command to Claude Code terminal
+ * Submit feature_implement command to Claude Code terminal
  */
 async function submitImplementPlanToTerminal() {
     const editor = vscode.window.activeTextEditor;
@@ -665,7 +665,7 @@ async function submitImplementPlanToTerminal() {
     }
 
     const filePath = editor.document.fileName;
-    const command = `/bootandshoe:implement_plan ${filePath}`;
+    const command = `/bootandshoe:feature_implement ${filePath}`;
 
     // Get all terminals
     const terminals = vscode.window.terminals;

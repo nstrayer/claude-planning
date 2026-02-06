@@ -26,8 +26,8 @@ VS Code extension for adding feedback tags in markdown files, designed for the b
 ## Usage with BootAndShoe
 
 These tags are processed by bootandshoe commands:
-- `/iterate_plan` - Processes feedback when updating plans
-- `/review_plan` - Collects and organizes feedback during reviews
+- `/feature_iterate` - Processes feedback when updating plans
+- `/feature_plan` - Uses feedback during plan creation
 
 ## Installation
 
