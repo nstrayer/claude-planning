@@ -479,9 +479,10 @@ async function submitPlanToTerminal() {
         return;
     }
 
-    // Check if there are any feedback markers
+    // Check if there are any feedback markers or general feedback tags
     const markers = getFeedbackMarkers(editor.document);
-    if (markers.length === 0) {
+    const hasGeneralFeedback = /<general-feedback>[\s\S]*?<\/general-feedback>/.test(editor.document.getText());
+    if (markers.length === 0 && !hasGeneralFeedback) {
         const proceed = await vscode.window.showQuickPick(
             ['Continue anyway', 'Cancel'],
             { placeHolder: 'No feedback markers found. Submit anyway?' }
