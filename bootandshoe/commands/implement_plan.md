@@ -23,6 +23,24 @@ If no plan path provided:
 - Look for recent plans in `thoughts/shared/plans/`
 - Otherwise, ask the user for the plan path
 
+Tip: For feature-based implementation: `/implement_plan @thoughts/features/my-feature/task.md`
+
+### Task Document Handling
+
+When given a task document path (file path contains `/features/` and filename is `task.md`):
+
+1. **Read task.md** and find the plan path from `**Plan:**` field
+2. **Update task.md status** to `implementing`
+3. **Add activity entry**: `- YYYY-MM-DD: Implementation started`
+4. **Read the linked plan** and proceed with implementation
+
+**After each phase completion**:
+- Add brief activity entry to task.md: `- YYYY-MM-DD: Phase N completed`
+
+**After final phase completion**:
+- Update task.md status to `validating`
+- Add activity: `- YYYY-MM-DD: Implementation complete, ready for validation`
+
 ## Token-Efficient Implementation
 
 **Before each phase**, spawn agents for reconnaissance instead of reading all files:
@@ -62,6 +80,7 @@ After implementing a phase:
 - Fix any issues before proceeding
 - Update your progress in both the plan and your todos
 - Check off completed items in the plan file itself using Edit
+- **If task document exists**: Add activity entry `- YYYY-MM-DD: Phase N completed`
 - **Pause for human verification**: After completing all automated verification for a phase, pause and inform the human that the phase is ready for manual testing. Use this format:
   ```
   Phase [N] Complete - Ready for Manual Verification

@@ -2,39 +2,80 @@
 
 Planning and implementation workflows for Claude Code. Provides slash commands and specialized agents that research codebases with minimal context overhead.
 
-## Commands
+## Feature-Centric Workflow
 
-| Command | Description | Variants |
-|---------|-------------|----------|
-| `/create_prd` | Interactive PRD creation through requirement gathering | - |
-| `/create_plan` | Interactive planning with codebase research | `_nt`, `_generic` |
-| `/implement_plan` | Execute plans phase-by-phase with verification (any source) | - |
-| `/validate_plan` | Verify implementation against success criteria | - |
-| `/iterate_plan` | Update existing plans with new information | `_nt` |
-| `/research_codebase` | Spawn parallel agents for codebase research | `_nt`, `_generic` |
+For multi-session feature development, use the feature-centric workflow:
 
-**Variant suffixes:**
-- `_nt` - No thoughts directory required
-- `_generic` - Minimal project-specific assumptions
-
-### PRD Workflow
-
-Create PRDs before implementation plans for well-defined features:
-
-```bash
-# Create a PRD interactively (uses AskUserQuestion for structured gathering)
-/create_prd
-
-# Create implementation plan from PRD
-/create_plan thoughts/shared/prds/2026-01-12-feature.md
+```
+thoughts/features/{feature-slug}/
+  task.md      # Context anchor (status, decisions, activity)
+  prd.md       # Product requirements
+  plan.md      # Implementation plan
 ```
 
-PRDs are stored in `thoughts/shared/prds/` and are detected by `/create_plan` via:
+**Commands:**
+1. `/start_feature [issue-url]` - Create feature directory with task.md and PRD
+2. `/create_plan @task.md` - Create plan (outputs to feature dir)
+3. `/implement_plan @task.md` - Execute plan (updates task.md)
+4. `/validate_feature @task.md` - Validate against PRD + plan
+
+The task document maintains context across sessions and tracks status through: `planning` -> `planned` -> `implementing` -> `validating` -> `complete`
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `/start_feature` | Start a new feature with task document and PRD |
+| `/create_plan` | Interactive planning with codebase research |
+| `/implement_plan` | Execute plans phase-by-phase with verification |
+| `/validate_feature` | Validate implementation against PRD and plan |
+| `/validate_plan` | Verify implementation against plan success criteria |
+| `/iterate_plan` | Update existing plans with new information |
+| `/research_codebase` | Spawn parallel agents for codebase research |
+
+### Feature Workflow Example
+
+```bash
+# Start a feature from a GitHub issue
+/start_feature https://github.com/org/repo/issues/123
+
+# Or start without an issue
+/start_feature
+# Follow interactive prompts to create PRD
+
+# Create implementation plan
+/create_plan @thoughts/features/issue-123-auth/task.md
+
+# Implement the plan
+/implement_plan @thoughts/features/issue-123-auth/task.md
+
+# Validate against both PRD and plan
+/validate_feature @thoughts/features/issue-123-auth/task.md
+```
+
+### Standalone Plan Workflow
+
+For one-off tasks without the full feature structure:
+
+```bash
+# Create a plan (interactive, runs in plan mode)
+/create_plan
+
+# Create plan from requirements file
+/create_plan path/to/requirements.md
+
+# Implement - accepts plans from any source
+/implement_plan thoughts/shared/plans/2025-01-08-feature.md
+/implement_plan .claude/plan.md
+
+# Validate implementation
+/validate_plan thoughts/shared/plans/2025-01-08-feature.md
+```
+
+PRDs in `thoughts/shared/prds/` are detected by `/create_plan` via:
 - Frontmatter: `type: prd`
 - Path: `*/prds/*.md`
 - Filename: `*-prd.md`
-
-When a PRD is detected, `/create_plan` extracts requirements and focuses research on technical implementation.
 
 ## Agents
 
@@ -62,38 +103,26 @@ Specialized agents for the Task tool. All agents are documentarians—they descr
 |-------|---------|
 | `spec-metadata` | Generate frontmatter for research documents |
 
-## Thoughts Directory (Optional)
+## Thoughts Directory
 
-Some commands use a `thoughts/` directory for storing plans and research:
+The `thoughts/` directory organizes planning artifacts:
 
 ```
 thoughts/
-├── shared/
-│   ├── plans/      # Implementation plans
-│   ├── prds/       # Product Requirements Documents
-│   └── research/   # Research documents
+├── features/           # Feature-centric workflows
+│   └── {slug}/
+│       ├── task.md     # Context anchor
+│       ├── prd.md      # Requirements
+│       └── plan.md     # Implementation plan
+└── shared/
+    ├── plans/          # Standalone implementation plans
+    ├── prds/           # Standalone PRDs
+    └── research/       # Research documents
 ```
 
-Commands with `_nt` suffix work without this directory. You can also specify custom paths.
+Feature directories are created by `/start_feature`. Standalone plans can be stored in `thoughts/shared/plans/`.
 
 ## Usage Examples
-
-### Planning Workflow
-
-```bash
-# Create a plan (interactive, runs in plan mode)
-/create_plan
-
-# Create plan from requirements file
-/create_plan path/to/requirements.md
-
-# Implement - accepts plans from any source
-/implement_plan thoughts/shared/plans/2025-01-08-feature.md   # traditional
-/implement_plan .claude/plan.md                                 # plan mode path
-
-# Validate implementation
-/validate_plan thoughts/shared/plans/2025-01-08-feature.md
-```
 
 ### Research
 
@@ -101,9 +130,6 @@ Commands with `_nt` suffix work without this directory. You can also specify cus
 # Research a topic
 /research_codebase
 # Then: "How does authentication work?"
-
-# Without thoughts directory
-/research_codebase_nt
 ```
 
 ### Agent Spawning
@@ -131,7 +157,8 @@ Used for key decisions where clear choices improve workflow:
 
 | Command | Where Used |
 |---------|------------|
-| `/create_prd` | All phases - requirement gathering, user stories, success criteria |
+| `/start_feature` | All phases - requirement gathering, user stories, success criteria |
+| `/validate_feature` | PRD compliance, manual verification, final sign-off |
 | `/validate_plan` | Manual verification collection, final sign-off |
 | `/review_plan` | Section-by-section feedback, final action selection |
 | `/create_plan` | Design options, phase structure approval, web research decisions |

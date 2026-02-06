@@ -4,6 +4,8 @@ description: Validate implementation against plan, verify success criteria, iden
 
 # Validate Plan
 
+> **Note**: For feature-based workflows, use `/validate_feature @thoughts/features/{slug}/task.md` instead. This validates against both the PRD and plan.
+
 You are tasked with validating that an implementation plan was correctly executed, verifying all success criteria and identifying any deviations or issues.
 
 ## Initial Setup

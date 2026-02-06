@@ -30,6 +30,7 @@ Please provide:
 I'll analyze this information and work with you to create a comprehensive plan.
 
 Tip: You can also invoke this command with a task file directly: `/create_plan path/to/requirements.md`
+For feature-based planning: `/create_plan @thoughts/features/my-feature/task.md`
 For deeper analysis, try: `/create_plan think deeply about path/to/requirements.md`
 ```
 
@@ -74,6 +75,30 @@ After reading mentioned files, check if any are PRD (Product Requirements Docume
   - **Out of Scope** -> Plan's "What We're NOT Doing"
 - **Skip questions about**: User needs, feature goals, scope boundaries (already documented in PRD)
 - **Focus research and questions on**: Technical implementation details, code patterns to follow, architecture decisions, integration points
+
+### Task Document Detection
+
+After reading mentioned files, check for task documents:
+
+**Detection**: File path contains `/features/` and filename is `task.md`
+
+**If task document found**:
+1. Acknowledge: "I see this is a feature task document. I'll use the linked PRD."
+2. Read the linked PRD (from `**PRD:**` field in task.md)
+3. Set plan output to `{feature-dir}/plan.md` (same directory as task.md)
+4. After plan creation, update task.md:
+   - Set `**Plan:**` to `./plan.md`
+   - Add activity: `- YYYY-MM-DD: Implementation plan created`
+
+**Task document format expected**:
+```markdown
+# Feature: {Name}
+
+**Status:** planning
+**Issue:** {link or "None"}
+**PRD:** ./prd.md
+**Plan:** (not yet created)
+```
 
 2. **Spawn initial research tasks to gather context**:
    Before asking the user any questions, use specialized agents to research in parallel:
@@ -265,8 +290,11 @@ Once aligned on approach:
 
 After structure approval:
 
-1. **Write the plan** to the plan file designated by plan mode (the path provided in the plan mode system message).
-2. **Use this template structure**:
+1. **Determine plan output location**:
+   - If task document was provided: write to `{feature-dir}/plan.md` (same directory as task.md)
+   - Otherwise: write to the plan file designated by plan mode (the path provided in the plan mode system message)
+
+2. **Write the plan** using this template structure:
 
 ````markdown
 ---
@@ -372,7 +400,24 @@ status: draft
 - Similar implementation: `[file:line]`
 ````
 
-### Phase 5: Exit Plan Mode
+### Phase 5: Update Task Document (if applicable)
+
+If a task document was provided:
+
+1. **Update task.md**:
+   - Change `**Plan:**` from `(not yet created)` to `./plan.md`
+   - Add activity entry: `- YYYY-MM-DD: Implementation plan created`
+   - Update `**Status:**` to `planned`
+
+2. **Inform the user**:
+   ```
+   Task document updated:
+   - Plan linked: ./plan.md
+   - Status: planned
+   - Activity logged
+   ```
+
+### Phase 6: Exit Plan Mode
 
 After writing the plan:
 
