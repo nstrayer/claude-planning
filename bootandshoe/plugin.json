@@ -1,9 +1,15 @@
 {
   "name": "bootandshoe",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "Commands and agents for codebase research, planning, and implementation workflows",
   "author": {
     "name": "nstrayer"
   },
-  "keywords": ["planning", "workflow", "implementation", "research", "agents"]
+  "keywords": [
+    "planning",
+    "workflow",
+    "implementation",
+    "research",
+    "agents"
+  ]
 }
