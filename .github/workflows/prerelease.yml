@@ -130,12 +130,22 @@ jobs:
             echo "updated=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Update plugin.json version
+        if: steps.update-version.outputs.updated == 'true'
+        run: |
+          NEXT_VERSION="${{ steps.version.outputs.next }}"
+          if [ -f bootandshoe/plugin.json ]; then
+            jq --arg v "$NEXT_VERSION" '.version = $v' bootandshoe/plugin.json > tmp.json
+            mv tmp.json bootandshoe/plugin.json
+            echo "Updated bootandshoe/plugin.json version to $NEXT_VERSION"
+          fi
+
       - name: Commit version update
         if: steps.update-version.outputs.updated == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .claude-plugin/marketplace.json
+          git add .claude-plugin/marketplace.json bootandshoe/plugin.json
           git commit -m "chore: bump version to ${{ steps.version.outputs.next }} [skip ci]"
           git push
 
