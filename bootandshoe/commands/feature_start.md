@@ -2,244 +2,134 @@
 description: Start a new feature with task document and PRD
 model: opus
 allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task"]
+argument-hint: Optional GitHub issue URL
 ---
 
 # Start Feature
 
-You are tasked with starting a new feature through an interactive process. This creates a feature directory with a task document (context anchor) and PRD.
+Guide the user through creating a feature directory with a task document and PRD. Follow a systematic approach: gather context, ask structured questions across 5 phases, then create the feature directory with task.md and prd.md.
 
-## Initial Response
+## Core Principles
 
-When this command is invoked:
+- **Use AskUserQuestion for every phase**: Call the tool to collect answers -- do not simulate or narrate responses
+- **Summarize between phases**: Confirm understanding before moving on
+- **Adapt options dynamically**: Base options on previous answers and domain context
+- **Keep PRDs product-focused**: Focus on WHAT, not HOW -- no implementation details
 
-1. **Check for GitHub issue URL parameter**:
-   - If URL provided (e.g., `https://github.com/org/repo/issues/123`), fetch issue details
+**Initial request:** $ARGUMENTS
+
+---
+
+## Phase 0: Setup
+
+**Goal**: Determine starting context
+
+**Actions**:
+1. If a GitHub issue URL was provided in arguments:
    - Extract issue number from URL
-   - Run: `gh issue view {number} --json title,body,labels`
-   - Use title/body as context for PRD conversation
+   - Run `gh issue view {number} --json title,body,labels` via Bash
+   - Use title/body as context for subsequent phases
+2. Search `thoughts/shared/prds/` via Glob for PRDs matching keywords from the feature name or issue
+3. If matching PRDs found, use AskUserQuestion to ask whether to use an existing PRD or create a new one
+   - If user selects existing PRD, skip to Phase 6 (Feature Directory Creation)
+4. If no arguments provided, briefly explain what this command creates (feature directory, task.md, PRD) and proceed to Phase 1
 
-2. **Check for existing PRDs**:
-   - Search `thoughts/shared/prds/` for PRDs matching keywords from the feature name or issue
-   - If matches found, use AskUserQuestion:
-     ```
-     Question: "I found existing PRDs that might be relevant. How should I proceed?"
-     Header: "Existing PRD"
-     Options:
-     - "Use [PRD name]" - Use this PRD for the feature (one option per match, max 3)
-     - "Create new PRD" - Start fresh with interactive PRD creation
-     ```
-   - If user selects existing PRD, skip to Feature Directory Creation
+**Output**: Context gathered, ready for PRD creation or existing PRD selected
 
-3. **If no parameters provided**, respond with:
-```
-I'll help you start a new feature. This creates:
-- A feature directory at `thoughts/features/{slug}/`
-- A task document (task.md) to anchor context across sessions
-- A PRD through structured questioning
+---
 
-You can also provide a GitHub issue URL: `/feature_start https://github.com/org/repo/issues/123`
+## Phase 1: Feature Overview
 
-Let's begin by understanding what you're building.
-```
+**Goal**: Understand the feature at a high level
 
-Then proceed to Phase 1.
+**Actions**:
+1. Call AskUserQuestion with up to 3 questions:
+   - What feature or capability is being proposed (header: "Feature")
+   - What user problem does this solve (header: "Problem")
+   - Who are the primary users (header: "Users", multiSelect: true)
+2. Generate options dynamically based on any issue context from Phase 0
+3. After receiving answers, summarize understanding and ask if it captures their intent before continuing
 
-## PRD Creation Phases
+**Output**: Clear understanding of feature, problem, and users
 
-### Phase 1: Feature Overview
+---
 
-Use AskUserQuestion to gather high-level understanding:
+## Phase 2: Use Cases & User Stories
 
-```
-AskUserQuestion with questions:
-1. "What feature or capability are you proposing?" (header: "Feature")
-   Options: Provide 2-4 relevant options based on context, or let user describe freely
+**Goal**: Define how users will interact with the feature
 
-2. "What user problem does this solve?" (header: "Problem")
-   Options: Common problem types relevant to the domain
+**Actions**:
+1. Call AskUserQuestion with up to 3 questions:
+   - Primary use case (header: "Main use case") -- derive options from Phase 1 answers
+   - What triggers users to need this (header: "Trigger")
+   - Expected outcome on success (header: "Outcome")
+2. Formulate user stories in "As a [persona], I want to [action] so that [outcome]" format
+3. Present stories and confirm with user before continuing
 
-3. "Who are the primary users of this feature?" (header: "Users")
-   Options: Common user personas, with multiSelect: true if multiple may apply
-```
+**Output**: User stories confirmed
 
-After receiving answers, summarize:
-```
-Based on your responses, I understand:
-- Feature: [summary]
-- Problem: [summary]
-- Users: [summary]
+---
 
-Does this capture your intent? Let me know if anything needs adjustment, then I'll continue to use cases.
-```
+## Phase 3: Requirements
 
-### Phase 2: Use Cases & User Stories
+**Goal**: Define functional and non-functional requirements
 
-Use AskUserQuestion to explore user interactions:
+**Actions**:
+1. Call AskUserQuestion with up to 3 questions:
+   - Must-have functional requirements (header: "Must-have", multiSelect: true) -- derive from use cases
+   - Nice-to-have features for later (header: "Nice-to-have", multiSelect: true)
+   - Non-functional requirements (header: "Non-functional", multiSelect: true) -- options: Performance, Security, Accessibility, Reliability
+2. Summarize requirements and confirm with user
 
-```
-AskUserQuestion with questions:
-1. "What is the primary use case for this feature?" (header: "Main use case")
-   Options: 2-4 common use case patterns based on the feature type
+**Output**: Requirements defined and confirmed
 
-2. "What triggers users to need this feature?" (header: "Trigger")
-   Options: Common triggers (user action, system event, time-based, etc.)
+---
 
-3. "What is the expected outcome when the feature is used successfully?" (header: "Outcome")
-   Options: Common success outcomes
-```
+## Phase 4: Constraints & Scope
 
-After receiving answers, formulate user stories:
-```
-Based on your input, here are the user stories:
+**Goal**: Define boundaries to prevent scope creep
 
-1. As a [persona], I want to [action from use case] so that [outcome].
-2. [Additional stories if multiple use cases]
+**Actions**:
+1. Call AskUserQuestion with up to 3 questions:
+   - Technical constraints (header: "Constraints", multiSelect: true)
+   - What is explicitly out of scope (header: "Out of scope", multiSelect: true) -- suggest related features that could be confused as in-scope
+   - Dependencies or integrations (header: "Dependencies", multiSelect: true)
+2. Summarize scope boundaries and confirm with user
 
-Do these capture the key interactions? I can adjust or add more before we continue.
-```
+**Output**: Scope boundaries established
 
-### Phase 3: Requirements
+---
 
-Use AskUserQuestion to define requirements:
+## Phase 5: Success Criteria
 
-```
-AskUserQuestion with questions:
-1. "What are the must-have functional requirements?" (header: "Must-have", multiSelect: true)
-   Options: Derive from use cases - list 3-4 key capabilities
+**Goal**: Define how completion will be measured
 
-2. "Are there nice-to-have features for future consideration?" (header: "Nice-to-have", multiSelect: true)
-   Options: Common enhancements based on feature type
+**Actions**:
+1. Call AskUserQuestion with up to 3 questions:
+   - Key acceptance criteria (header: "Acceptance", multiSelect: true) -- derive testable criteria from requirements
+   - How success will be measured (header: "Metrics")
+   - What would make this feature a failure (header: "Failure signals")
+2. Summarize success criteria and confirm with user
+3. Ask if the user is ready to generate the feature directory
 
-3. "What non-functional requirements matter?" (header: "Non-functional", multiSelect: true)
-   Options:
-   - Performance (fast response times)
-   - Security (data protection, authentication)
-   - Accessibility (screen readers, keyboard nav)
-   - Reliability (error handling, recovery)
-```
+**Output**: Success criteria established, ready for directory creation
 
-After receiving answers, summarize requirements:
-```
-Requirements summary:
+---
 
-**Must-Have:**
-- [Requirement 1]
-- [Requirement 2]
+## Phase 6: Feature Directory Creation
 
-**Nice-to-Have:**
-- [If any selected]
+**Goal**: Create the feature directory with task.md and prd.md
 
-**Non-Functional:**
-- [Selected constraints]
+### Step 1: Generate slug
 
-Any requirements to add or modify?
-```
-
-### Phase 4: Constraints & Scope
-
-Use AskUserQuestion to define boundaries:
-
-```
-AskUserQuestion with questions:
-1. "What technical constraints exist?" (header: "Constraints", multiSelect: true)
-   Options: Common constraints (existing architecture, API limits, browser support, etc.)
-
-2. "What is explicitly OUT of scope?" (header: "Out of scope", multiSelect: true)
-   Options: Related features that could be confused as in-scope
-
-3. "Are there dependencies or integrations?" (header: "Dependencies", multiSelect: true)
-   Options: Common integration points based on context
-```
-
-After receiving answers:
-```
-Scope boundaries defined:
-
-**Constraints:**
-- [Constraint 1]
-
-**Out of Scope:**
-- [Item 1]
-- [Item 2]
-
-**Dependencies:**
-- [If any]
-
-This helps prevent scope creep. Any adjustments needed?
-```
-
-### Phase 5: Success Criteria
-
-Use AskUserQuestion to define completion criteria:
-
-```
-AskUserQuestion with questions:
-1. "What are the key acceptance criteria?" (header: "Acceptance", multiSelect: true)
-   Options: Derive from requirements - testable criteria
-
-2. "How will success be measured?" (header: "Metrics")
-   Options: Common success metrics (user adoption, task completion, error reduction, etc.)
-
-3. "What would make this feature a failure?" (header: "Failure signals")
-   Options: Common failure indicators (helps clarify success by contrast)
-```
-
-After receiving answers:
-```
-Success criteria established:
-
-**Acceptance Criteria:**
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-
-**Success Metrics:**
-- [Metric 1]
-
-**Failure Signals:**
-- [Signal 1]
-
-Ready to generate the feature directory and PRD?
-```
-
-## Feature Directory Creation
-
-### Generate Feature Slug
-
-**If GitHub issue provided:**
-- Format: `issue-{number}-{short-desc}`
-- Example: `issue-123-user-auth`
-- Max 30 characters, kebab-case
-- Use first few words of issue title for description
-
-**If no issue:**
-- Use AskUserQuestion:
-  ```
-  Question: "What slug should I use for this feature directory?"
-  Header: "Feature slug"
-  Options:
-  - "[auto-generated-slug]" - Based on feature name (Recommended)
-  - "Custom slug" - I'll specify my own
-  ```
-- If custom, collect freeform input
+- If GitHub issue was provided: use format `issue-{number}-{short-desc}`, max 30 chars, kebab-case
+- Otherwise: use AskUserQuestion to propose an auto-generated slug based on the feature name, with option for custom slug
 - Validate: lowercase, kebab-case, no spaces
 
-**Always confirm before creating:**
-```
-I'll create the feature directory at:
-  thoughts/features/{slug}/
+### Step 2: Create directory and files
 
-With files:
-  - task.md (context anchor)
-  - prd.md (requirements document)
-
-Proceed?
-```
-
-### Create Feature Directory
-
-1. **Create directory**: `thoughts/features/{slug}/`
-
-2. **Create task.md**:
+1. Create directory `thoughts/features/{slug}/` via Bash
+2. Write `thoughts/features/{slug}/task.md` with this structure:
 
 ```markdown
 # Feature: {Name}
@@ -258,7 +148,7 @@ Proceed?
 - {YYYY-MM-DD}: Feature started
 ```
 
-3. **Create prd.md** using template:
+3. Write `thoughts/features/{slug}/prd.md` -- populate all sections from the 5 phases of gathered information. Use this structure:
 
 ```markdown
 ---
@@ -271,152 +161,44 @@ status: draft
 # {Feature Name} PRD
 
 ## Overview
-
-{Brief description from Phase 1}
-
 ## Problem Statement
-
-{What user problem are we solving? From Phase 1}
-
 ## Goals & Objectives
-
-- {Goal 1 - derived from problem and outcome}
-- {Goal 2}
-
 ## User Personas
-
-{From Phase 1}
-
 ## User Stories
-
-{From Phase 2}
-- As a [persona], I want to [action] so that [benefit]
-- [Additional stories]
-
 ## Requirements
-
 ### Functional Requirements
-
-{Must-have items from Phase 3}
-- {Requirement 1}
-- {Requirement 2}
-
 ### Nice-to-Have
-
-{Optional items from Phase 3, if any}
-- {Item 1}
-
 ### Non-Functional Requirements
-
-{From Phase 3}
-- **Performance**: {if selected}
-- **Security**: {if selected}
-- **Accessibility**: {if selected}
-
 ## Acceptance Criteria
-
-{From Phase 5}
-- [ ] {Criterion 1}
-- [ ] {Criterion 2}
-
 ## Technical Considerations
-
-{From Phase 4 - constraints and dependencies}
-
 ## Out of Scope
-
-{From Phase 4}
-- {Item 1}
-- {Item 2}
-
 ## Success Metrics
-
-{From Phase 5}
-- {Metric 1}
-
 ## Open Questions
-
-{Any unresolved items discovered during questioning}
 ```
 
-## Final Output
+### Step 3: If using existing PRD
 
-After creating the feature directory:
+If the user selected an existing PRD in Phase 0:
+1. Read the existing PRD completely
+2. Generate slug from PRD title
+3. Create task.md pointing to the PRD
+4. Copy the PRD to `thoughts/features/{slug}/prd.md`
 
-```
-Feature directory created at: thoughts/features/{slug}/
+### Step 4: Report
 
-Files created:
-- task.md - Context anchor for this feature
-- prd.md - Product requirements document
+Tell the user what was created and suggest next steps:
+- Review and refine the PRD
+- `/feature_plan @thoughts/features/{slug}/task.md` to create implementation plan
+- `/feature_implement @thoughts/features/{slug}/task.md` to implement
+- `/feature_validate @thoughts/features/{slug}/task.md` to validate
 
-Next steps:
-1. Review and refine the PRD if needed
-2. Create implementation plan: /feature_plan @thoughts/features/{slug}/task.md
-3. Implement: /feature_implement @thoughts/features/{slug}/task.md
-4. Validate: /feature_validate @thoughts/features/{slug}/task.md
+---
 
-The task.md file will track status, decisions, and activity throughout the feature lifecycle.
-```
+## Guidelines
 
-## Using Existing PRD
-
-If user selected an existing PRD:
-
-1. **Read the existing PRD** completely
-2. **Generate feature slug** from PRD title
-3. **Create feature directory** with:
-   - task.md pointing to the existing PRD
-   - Copy or symlink the PRD to the feature directory
-
-```markdown
-# Feature: {Name from PRD}
-
-**Status:** planning
-**Issue:** {GitHub link if provided, else "None"}
-**PRD:** ./prd.md
-**Plan:** (not yet created)
-
-## Decisions
-
-(none yet)
-
-## Recent Activity
-
-- {YYYY-MM-DD}: Feature started from existing PRD
-```
-
-4. **Copy the PRD** to `thoughts/features/{slug}/prd.md`
-
-## Important Guidelines
-
-1. **Use AskUserQuestion strategically**:
-   - Ask 2-4 questions per phase (tool supports 1-4)
-   - Provide meaningful options based on context
-   - Use multiSelect for lists (requirements, constraints)
-   - Keep option labels concise (1-5 words)
-
-2. **Adapt options dynamically**:
-   - Base options on previous answers
-   - Use domain knowledge to suggest relevant choices
-   - Always allow "Other" (built into the tool)
-
-3. **Summarize between phases**:
-   - Confirm understanding before moving on
-   - Allow corrections without restarting
-   - Build the PRD incrementally
-
-4. **Handle incomplete information**:
-   - Add unresolved items to "Open Questions"
-   - Don't block creation for minor gaps
-   - Note assumptions made
-
-5. **Keep it focused**:
-   - PRDs are product documents, not technical specs
-   - Avoid implementation details
-   - Focus on WHAT, not HOW
-
-## Example Interaction Flow
-
-```
-User: /feature_start https://github.com/myorg/myrepo/issues/42
+- Ask 2-3 questions per phase using AskUserQuestion (tool supports 1-4)
+- Provide meaningful options based on context; use multiSelect for lists
+- Keep option labels concise (1-5 words)
+- Allow corrections without restarting -- adjust and re-confirm
+- Add unresolved items to "Open Questions" in the PRD
+- Do not block creation for minor gaps -- note assumptions made
