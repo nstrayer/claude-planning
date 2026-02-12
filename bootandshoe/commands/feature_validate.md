@@ -1,6 +1,7 @@
 ---
 description: Validate implementation against PRD requirements and plan success criteria
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task"]
 ---
 
 # Validate Feature

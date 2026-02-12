@@ -1,6 +1,7 @@
 ---
 description: Iterate on existing implementation plans with thorough research and updates
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task", "EnterPlanMode", "ExitPlanMode"]
 ---
 
 # Iterate Implementation Plan (Plan Mode)

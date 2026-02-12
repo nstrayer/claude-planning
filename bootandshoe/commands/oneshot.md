@@ -1,6 +1,7 @@
 ---
 description: Plan and execute simple tasks in one shot, with automatic complexity detection
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task", "TodoWrite"]
 ---
 
 # One-Shot Task Execution

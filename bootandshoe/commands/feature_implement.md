@@ -1,6 +1,7 @@
 ---
 description: Implement approved technical plans with phased verification
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task", "TodoWrite"]
 ---
 
 # Implement Plan

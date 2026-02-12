@@ -1,6 +1,7 @@
 ---
 description: Adopt in-progress work into the feature tracking workflow
 model: opus
+allowed-tools: ["Read", "Write", "Grep", "Glob", "Bash", "AskUserQuestion"]
 ---
 
 # Adopt Feature

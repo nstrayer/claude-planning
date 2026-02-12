@@ -1,6 +1,7 @@
 ---
 description: Create detailed implementation plans through interactive research and iteration
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task", "EnterPlanMode", "ExitPlanMode"]
 ---
 
 # Implementation Plan (Plan Mode)

@@ -1,6 +1,7 @@
 ---
 description: Document codebase with optional feature context
 model: opus
+allowed-tools: ["Read", "Write", "Grep", "Glob", "Bash", "Task", "TodoWrite", "Skill"]
 ---
 
 # Research Codebase

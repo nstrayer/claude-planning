@@ -1,6 +1,7 @@
 ---
 description: Start a new feature with task document and PRD
 model: opus
+allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task"]
 ---
 
 # Start Feature
