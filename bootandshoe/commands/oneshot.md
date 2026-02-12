@@ -2,75 +2,67 @@
 description: Plan and execute simple tasks in one shot, with automatic complexity detection
 model: opus
 allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task", "TodoWrite"]
+argument-hint: Task description
 ---
 
 # One-Shot Task Execution
 
-You are tasked with planning and executing simple tasks in a single pass. Unlike `/feature_plan` which is interactive and iterative, this command assesses complexity upfront and either executes immediately or redirects to the full planning workflow.
+Plan and execute simple tasks in a single pass. Assess complexity upfront and either execute immediately or redirect to `/feature_plan` for complex work.
 
-## Complexity Threshold
+**Initial request:** $ARGUMENTS
 
-This command is designed for **simple tasks only**:
-- **Maximum 2-3 implementation phases**
-- **Maximum ~5 files affected**
-- **No significant architectural decisions required**
-- **Clear, well-defined requirements**
+---
 
-If the task exceeds these thresholds, you MUST redirect the user to `/feature_plan` instead.
+## Phase 0: Check Context
 
-## Workflow
+**Goal**: Determine output location and validate input
 
-### Step 0: Check for Feature Context
+**Actions**:
+1. If no task description provided, ask the user to provide one and wait
+2. If input includes a task document path (contains `/features/` and filename `task.md`):
+   - Read task.md completely
+   - Plan output: `thoughts/features/{slug}/oneshot-YYYY-MM-DD-description.md`
+   - After completion, update task.md activity: `- YYYY-MM-DD: Oneshot task completed - [description]`
+3. Otherwise: plan output: `thoughts/shared/plans/YYYY-MM-DD-oneshot-description.md`
 
-When invoked:
+**Output**: Context established, output path determined
 
-1. **Check for task document context**:
-   - If input includes a path containing `/features/` and filename `task.md`:
-     - Read task.md completely
-     - Plan will be saved to feature directory: `thoughts/features/{slug}/oneshot-YYYY-MM-DD-description.md`
-     - After completion, update task.md with activity: `- YYYY-MM-DD: Oneshot task completed - [description]`
-   - Otherwise: Plan will be saved to `thoughts/shared/plans/YYYY-MM-DD-oneshot-description.md`
+---
 
-### Step 1: Understand the Task
+## Phase 1: Assess Complexity
 
-When invoked with a task description:
+**Goal**: Determine if the task is simple enough for one-shot execution
 
-1. **Read any mentioned files FULLY** (no limit/offset)
-2. **Quick research** using parallel sub-agents:
-   - Use **bootandshoe:codebase-locator** to find relevant files
-   - Use **bootandshoe:codebase-analyzer** if you need to understand existing patterns
-3. **Assess complexity** based on:
-   - Number of files that need changes
-   - Whether changes span multiple domains (DB, API, UI, etc.)
-   - Presence of unclear requirements or design decisions
-   - Dependencies between changes
+**Actions**:
+1. Read any mentioned files FULLY (no limit/offset)
+2. Run quick parallel research:
+   - **bootandshoe:codebase-locator**: Find relevant files
+   - **bootandshoe:codebase-analyzer**: Understand existing patterns (if needed)
+3. Assess against thresholds:
+   - Maximum 2-3 implementation phases
+   - Maximum ~5 files affected
+   - No significant architectural decisions required
+   - Clear, well-defined requirements
+4. If task exceeds thresholds: explain why (specific reasons like "Affects 8+ files across API and UI layers"), state estimated scope (phases, files, decisions), recommend `/feature_plan`, and stop
+5. If task is simple enough, proceed to next phase
 
-### Step 2: Complexity Decision
+**Output**: Complexity assessed, decision made
 
-**If task is TOO COMPLEX** (exceeds thresholds), respond:
+---
 
-```
-This task is too complex for one-shot execution.
+## Phase 2: Plan and Execute
 
-**Why:**
-- [Specific reason: e.g., "Affects 8+ files across API and UI layers"]
-- [Another reason if applicable]
+**Goal**: Create a lightweight plan and implement it
 
-**Estimated scope:**
-- Phases needed: [N]
-- Files affected: [N]
-- Key decisions required: [list any]
+**Actions**:
+1. Write a plan file at the determined output location using the template below
+2. Create a todo list with each implementation step
+3. Implement each phase: make changes, run automated verification, check off completed items in the plan
+4. Update plan status to `completed` when done
 
-**Recommendation:** Use `/feature_plan [task description]` to create a proper implementation plan with iterative refinement.
-```
+**Output**: Implementation complete
 
-Then STOP. Do not proceed with implementation.
-
-**If task is SIMPLE ENOUGH**, proceed to Step 3.
-
-### Step 3: Create Lightweight Plan
-
-Create a plan file at the determined location (feature directory or `thoughts/shared/plans/`):
+### Plan Template
 
 ```markdown
 ---
@@ -96,12 +88,9 @@ status: in-progress
 
 **Changes:**
 1. `path/to/file.ext`: [what to change]
-2. `path/to/other.ext`: [what to change]
 
 **Verification:**
 - [ ] [Automated check, e.g., `make test`]
-
-[Additional phases if needed, max 3]
 
 ## Success Criteria
 
@@ -112,77 +101,23 @@ status: in-progress
 - [ ] [What user should check]
 ```
 
-### Step 4: Execute the Plan
+---
 
-1. **Create a todo list** with each implementation step
-2. **Implement each phase**:
-   - Make the changes
-   - Run automated verification
-   - Check off completed items in the plan
-3. **Update plan status** to `completed` when done
+## Phase 3: Report Results
 
-### Step 5: Report Results
+**Goal**: Summarize what was done
 
-After execution, provide a summary:
+**Actions**:
+1. Present: task description, plan file path, list of changes made with file paths, automated checks that passed, and manual verification items for the user to test
 
-```
-## One-Shot Complete
+**Output**: Results reported
 
-**Task:** [description]
-**Plan:** `thoughts/shared/plans/YYYY-MM-DD-oneshot-[description].md`
+---
 
-**Changes made:**
-- `file1.ext`: [brief description]
-- `file2.ext`: [brief description]
+## Guidelines
 
-**Verification:**
-- [x] [Automated checks that passed]
-
-**Manual verification needed:**
-- [ ] [What user should test]
-```
-
-## Important Guidelines
-
-1. **Be conservative** - When in doubt about complexity, redirect to `/feature_plan`
-2. **No back-and-forth** - This is one-shot; don't ask clarifying questions mid-task
-3. **Quick research only** - Don't spawn extensive research like `/feature_plan` does
-4. **Always save the plan** - Even for simple tasks, create the plan file for history
-5. **Verify before reporting success** - Run automated checks before claiming completion
-
-## Examples of Appropriate Tasks
-
-**Good for one-shot:**
-- "Add a logout button to the header"
-- "Fix the typo in the error message"
-- "Add validation for email field"
-- "Update the API endpoint URL"
-- "Add a new column to the users table"
-
-**Too complex for one-shot:**
-- "Implement user authentication"
-- "Add real-time notifications"
-- "Refactor the state management"
-- "Add a new payment provider"
-- "Implement dark mode"
-
-## Invocation
-
-```
-/oneshot [task description]
-/oneshot Add a loading spinner to the submit button
-/oneshot Fix the null pointer exception in UserService.getUser()
-```
-
-If no task description provided, respond:
-
-```
-Please provide a task description:
-
-/oneshot [your task here]
-
-Examples:
-- /oneshot Add a logout button to the header
-- /oneshot Fix the validation error in signup form
-- /oneshot Update the copyright year in the footer
-```
+- **Be conservative**: When in doubt about complexity, redirect to `/feature_plan`
+- **No back-and-forth**: This is one-shot; don't ask clarifying questions mid-task
+- **Quick research only**: Don't spawn extensive research like `/feature_plan` does
+- **Always save the plan**: Even for simple tasks, create the plan file for history
+- **Verify before reporting**: Run automated checks before claiming completion

@@ -1,6 +1,6 @@
 {
   "name": "bootandshoe",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "description": "Commands and agents for codebase research, planning, and implementation workflows",
   "author": {
     "name": "nstrayer"

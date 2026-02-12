@@ -2,348 +2,136 @@
 description: Iterate on existing implementation plans with thorough research and updates
 model: opus
 allowed-tools: ["Read", "Write", "Edit", "Grep", "Glob", "Bash", "AskUserQuestion", "Task", "EnterPlanMode", "ExitPlanMode"]
+argument-hint: Path to plan or task file, plus feedback
 ---
 
 # Iterate Implementation Plan (Plan Mode)
 
-You are tasked with updating existing implementation plans based on user feedback. You should be skeptical, thorough, and ensure changes are grounded in actual codebase reality.
+Update existing implementation plans based on user feedback. Be skeptical, thorough, and ensure changes are grounded in codebase reality.
 
-**This command runs within plan mode.** Read the existing plan, make updates, and write the result to the plan file designated by plan mode (the path provided in the plan mode system message). When finished, call `ExitPlanMode` so the user can review and approve in VS Code.
+**This command runs within plan mode.** Read the existing plan, make updates, and write the result to the plan file designated by plan mode. When finished, call `ExitPlanMode` so the user can review and approve in VS Code.
 
-## Initial Response
+**Initial request:** $ARGUMENTS
 
-When this command is invoked:
+---
 
-1. **Parse the input to identify**:
-   - Task document path (e.g., `thoughts/features/my-feature/task.md`) OR
-   - Plan file path (e.g., `thoughts/shared/plans/2025-10-16-feature.md` or `thoughts/features/my-feature/plan.md`)
-   - Requested changes/feedback
+## Phase 1: Locate Plan and Feedback
 
-2. **Handle task document input**:
+**Goal**: Identify the plan to update and what changes are needed
 
-   If input path contains `/features/` and filename is `task.md`:
-   - Read task.md completely
-   - Extract plan path from `**Plan:**` field
-   - Use that plan for iteration
-   - After updates, add activity to task.md: `- YYYY-MM-DD: Plan updated`
+**Actions**:
+1. Parse input for:
+   - Task document path (`thoughts/features/{slug}/task.md`) -- read it and extract plan path from `**Plan:**` field
+   - Plan file path (`thoughts/shared/plans/*.md` or `thoughts/features/{slug}/plan.md`)
+   - Requested changes/feedback text
+2. If no plan file provided, ask the user for the path and wait
+3. If plan file provided but no feedback, ask what changes to make and wait
+4. If both provided, proceed immediately
 
-3. **Handle different input scenarios**:
+**Output**: Plan file identified, feedback understood
 
-   **If NO plan file provided**:
-   ```
-   I'll help you iterate on an existing implementation plan.
+---
 
-   Which plan would you like to update? Please provide the path:
-   - Feature plan: `thoughts/features/{slug}/task.md` or `thoughts/features/{slug}/plan.md`
-   - Standalone plan: `thoughts/shared/plans/YYYY-MM-DD-feature.md`
+## Phase 2: Understand Current Plan
 
-   Tip: You can list recent plans with `ls -lt thoughts/shared/plans/ | head`
-   ```
-   Wait for user input, then re-check for feedback.
+**Goal**: Read and fully understand the existing plan
 
-   **If plan file provided but NO feedback**:
-   ```
-   I've found the plan at [path]. What changes would you like to make?
+**Actions**:
+1. Read the existing plan file FULLY (no limit/offset)
+2. Understand current structure, phases, scope, and success criteria
+3. Parse what the user wants to add/modify/remove
+4. Determine if changes require codebase research
 
-   For example:
-   - "Add a phase for migration handling"
-   - "Update the success criteria to include performance tests"
-   - "Adjust the scope to exclude feature X"
-   - "Split Phase 2 into two separate phases"
-   ```
-   Wait for user input.
+**Output**: Plan understood, change scope identified
 
-   **If BOTH plan file AND feedback provided**:
-   - Proceed immediately to Step 1
-   - No preliminary questions needed
+---
 
-## Process Steps
+## Phase 3: Research (if needed)
 
-### Step 1: Read and Understand Current Plan
+**Goal**: Gather technical context for the requested changes
 
-1. **Read the existing plan file COMPLETELY**:
-   - Use the Read tool WITHOUT limit/offset parameters
-   - Understand the current structure, phases, and scope
-   - Note the success criteria and implementation approach
+**Actions**:
+1. Only spawn research tasks if changes require new technical understanding -- skip for simple edits like rewording or reordering
+2. Spawn parallel agents as needed:
+   - **bootandshoe:codebase-locator**: Find relevant files
+   - **bootandshoe:codebase-analyzer**: Understand implementation details
+   - **bootandshoe:codebase-pattern-finder**: Find similar patterns
+   - **bootandshoe:thoughts-locator** / **bootandshoe:thoughts-analyzer**: Historical context
+3. If feedback introduces unfamiliar technologies, suggest web research via **bootandshoe:web-search-researcher** and wait for confirmation
+4. Wait for all research tasks to complete
 
-2. **Understand the requested changes**:
-   - Parse what the user wants to add/modify/remove
-   - Identify if changes require codebase research
-   - Determine scope of the update
+**Output**: Technical context gathered
 
-### Step 2: Research If Needed
+---
 
-**Only spawn research tasks if the changes require new technical understanding.**
+## Phase 4: Clarify and Confirm
 
-If the user's feedback requires understanding new code patterns or validating assumptions:
+**Goal**: Ensure mutual understanding before editing
 
-1. **Spawn parallel sub-tasks for research**:
-   Use the right agent for each type of research:
+**Actions**:
+1. If change type is unclear, use AskUserQuestion (header: "Change type", multiSelect: true) with options: "Add new phase" / "Modify existing phase" / "Update success criteria" / "Adjust scope"
+2. Present understanding of requested changes and research findings
+3. Use AskUserQuestion (header: "Confirm") to confirm: "Yes, make changes" / "Needs adjustment" / "Research first" / "Cancel"
+4. If "Needs adjustment": collect specifics and re-confirm
+5. If "Research first": spawn additional agents, then re-present
+6. If "Cancel": end gracefully without edits
 
-   **For code investigation:**
-   - **bootandshoe:codebase-locator** - To find relevant files
-   - **bootandshoe:codebase-analyzer** - To understand implementation details
-   - **bootandshoe:codebase-pattern-finder** - To find similar patterns
-
-   **For historical context:**
-   - **bootandshoe:thoughts-locator** - To find related research or decisions
-   - **bootandshoe:thoughts-analyzer** - To extract insights from documents
-
-   **Be EXTREMELY specific about directories**:
-   - If the change involves "WUI", specify `bootandshoe-wui/` directory
-   - If it involves "daemon", specify `hld/` directory
-   - Include full path context in prompts
-
-2. **Read any new files identified by research**:
-   - Read them FULLY into the main context
-   - Cross-reference with the plan requirements
-
-3. **Wait for ALL sub-tasks to complete** before proceeding
-
-### Web Research for Plan Updates
-
-When user feedback introduces new technical considerations:
-
-1. **Identify knowledge gaps**: If the requested change involves something you're uncertain about
-2. **Suggest targeted research**:
-   ```
-   Your feedback about [topic] is a good point. Would you like me to search the
-   web for current best practices on [specific aspect] before updating the plan?
-   ```
-3. **Wait for confirmation**: Only spawn bootandshoe:web-search-researcher if user approves
-4. **Incorporate findings**: Update the plan with researched best practices
-
-### Step 3: Clarify Change Type (If Needed)
-
-If the type of change isn't clear from the feedback, use AskUserQuestion:
-
-```
-AskUserQuestion:
-Question: "What type of changes are needed?"
-Header: "Change type"
-multiSelect: true
-Options:
-- "Add new phase" - Insert additional implementation phase
-- "Modify existing phase" - Update details of current phase
-- "Update success criteria" - Change how we verify completion
-- "Adjust scope" - Change what's in/out of scope
-```
-
-Use the selected options to focus your understanding and research.
-
-### Step 4: Present Understanding and Approach
-
-Before making changes, confirm your understanding:
-
-```
-Based on your feedback, I understand you want to:
-- [Change 1 with specific detail]
-- [Change 2 with specific detail]
-
-My research found:
-- [Relevant code pattern or constraint]
-- [Important discovery that affects the change]
-
-I plan to update the plan by:
-1. [Specific modification to make]
-2. [Another modification]
-```
-
-Then use AskUserQuestion to confirm:
-
-```
-AskUserQuestion:
-Question: "Does this capture the changes you want?"
-Header: "Confirm"
-Options:
-- "Yes, make changes" - Proceed with updates
-- "Needs adjustment" - Will clarify what's different
-- "Research first" - Need more codebase investigation
-- "Cancel" - Don't make changes right now
-```
-
-**Based on response:**
-- If "Yes, make changes": Proceed to Step 5
-- If "Needs adjustment": Ask what's different, update understanding, re-confirm
-- If "Research first": Spawn additional codebase research agents, then re-present understanding
-- If "Cancel": Acknowledge and end gracefully without making edits
+**Output**: Changes confirmed, ready to edit
 
 ### Feedback Tag Processing
 
-When the user responds, check for feedback in addition to their regular response. There are two feedback formats to handle:
+When the user responds, check for tagged feedback in two formats:
 
-#### Legacy Inline Format
-Simple `<feedback>` tags wrapping content directly:
-```
-<feedback>
-Add a rollback step to Phase 2 in case the migration fails
-</feedback>
-```
+**Legacy inline format**: `<feedback>content</feedback>` tags wrapping content directly.
 
-#### Marker-Based Format
-This format uses HTML comment markers for precise text references:
+**Marker-based format**: In-document markers `<!--fb:id-->text<!--/fb:id-->` with corresponding entries in a `<feedback-section>` at end of file. For each feedback entry:
+1. Locate the marker by ID
+2. Read the marked text for context
+3. Address the feedback in your updates
+4. Remove markers and feedback entries when resolved (keep the text between markers)
 
-**In the document** - markers wrap the specific text being discussed:
-```
-<!--fb:a1b2c3-->marked text that needs feedback<!--/fb:a1b2c3-->
-```
+Acknowledge and address all tagged feedback items before making changes.
 
-**At end of file** - the actual feedback comments in a feedback section:
-```
 ---
-<feedback-section>
-<feedback id="a1b2c3">
-The actual feedback comment about the marked text
-</feedback>
-</feedback-section>
-```
 
-**How to process marker-based feedback:**
-1. Find all `<feedback>` entries in the `<feedback-section>` at end of file
-2. For each feedback, locate the corresponding marker by ID (`<!--fb:id-->...<!--/fb:id-->`)
-3. Understand the context by reading the marked text
-4. Address the feedback and update the plan accordingly
-5. Remove the marker and feedback entry when resolved
+## Phase 5: Update the Plan
 
-**To remove resolved feedback:**
-- Delete the `<!--fb:id-->` and `<!--/fb:id-->` markers (keep the text between them)
-- Delete the corresponding `<feedback id="id">...</feedback>` entry
-- If the feedback section becomes empty, remove it entirely
+**Goal**: Make precise edits to the plan
 
-#### Processing Guidelines
-1. **Parse feedback** - Extract all tagged feedback in either format
-2. **Prioritize tagged feedback** - These are specific, actionable items
-3. **Incorporate into your changes** - Address each tagged item explicitly
-4. **Confirm resolution** - Show how each feedback item was addressed
-5. **Clean up** - Remove resolved feedback markers and entries
+**Actions**:
+1. Use the Edit tool for surgical changes -- do not wholesale rewrite
+2. Maintain existing structure unless explicitly changing it
+3. Keep all file:line references accurate
+4. Ensure consistency:
+   - New phases follow existing patterns
+   - Scope changes update "What We're NOT Doing"
+   - Approach changes update "Implementation Approach"
+   - Maintain automated vs manual success criteria distinction
+5. Preserve quality: include file paths/line numbers, measurable success criteria, `make` commands for verification
 
-Your response should acknowledge and address all feedback items before making changes.
+**Output**: Plan updated
 
-### Step 5: Update the Plan
+---
 
-1. **Make focused, precise edits** to the plan file:
-   - Use the Edit tool for surgical changes
-   - Maintain the existing structure unless explicitly changing it
-   - Keep all file:line references accurate
-   - Update success criteria if needed
+## Phase 6: Exit Plan Mode
 
-2. **Ensure consistency**:
-   - If adding a new phase, ensure it follows the existing pattern
-   - If modifying scope, update "What We're NOT Doing" section
-   - If changing approach, update "Implementation Approach" section
-   - Maintain the distinction between automated vs manual success criteria
+**Goal**: Submit updated plan for review
 
-3. **Preserve quality standards**:
-   - Include specific file paths and line numbers for new content
-   - Write measurable success criteria
-   - Use `make` commands for automated verification
-   - Keep language clear and actionable
+**Actions**:
+1. Summarize the changes made and key improvements
+2. If task document was provided, add activity to task.md: `- YYYY-MM-DD: Plan updated`
+3. Call `ExitPlanMode` so the user can review in VS Code
 
-### Step 6: Exit Plan Mode
+**Output**: Updated plan submitted for approval
 
-After updating the plan:
+---
 
-1. **Present the changes made**:
-   ```
-   I've updated the plan.
+## Guidelines
 
-   Changes made:
-   - [Specific change 1]
-   - [Specific change 2]
-
-   The updated plan now:
-   - [Key improvement]
-   - [Another improvement]
-   ```
-
-2. **Call `ExitPlanMode`** so the user can review the updated plan in VS Code.
-
-## Important Guidelines
-
-1. **Be Skeptical**:
-   - Don't blindly accept change requests that seem problematic
-   - Question vague feedback - ask for clarification
-   - Verify technical feasibility with code research
-   - Point out potential conflicts with existing plan phases
-
-2. **Be Surgical**:
-   - Make precise edits, not wholesale rewrites
-   - Preserve good content that doesn't need changing
-   - Only research what's necessary for the specific changes
-   - Don't over-engineer the updates
-
-3. **Be Thorough**:
-   - Read the entire existing plan before making changes
-   - Research code patterns if changes require new technical understanding
-   - Ensure updated sections maintain quality standards
-   - Verify success criteria are still measurable
-
-4. **Be Interactive**:
-   - Confirm understanding before making changes
-   - Show what you plan to change before doing it
-   - Allow course corrections
-   - Don't disappear into research without communicating
-
-5. **No Open Questions**:
-   - If the requested change raises questions, ASK
-   - Research or get clarification immediately
-   - Do NOT update the plan with unresolved questions
-   - Every change must be complete and actionable
-
-## Success Criteria Guidelines
-
-When updating success criteria, always maintain the two-category structure:
-
-1. **Automated Verification** (can be run by execution agents):
-   - Commands that can be run: `make test`, `npm run lint`, etc.
-   - Prefer `make` commands: `make -C bootandshoe-wui check` instead of `cd bootandshoe-wui && bun run fmt`
-   - Specific files that should exist
-   - Code compilation/type checking
-
-2. **Manual Verification** (requires human testing):
-   - UI/UX functionality
-   - Performance under real conditions
-   - Edge cases that are hard to automate
-   - User acceptance criteria
-
-## Sub-task Spawning Best Practices
-
-When spawning research sub-tasks:
-
-1. **Only spawn if truly needed** - don't research for simple changes
-2. **Spawn multiple tasks in parallel** for efficiency
-3. **Each task should be focused** on a specific area
-4. **Provide detailed instructions** including:
-   - Exactly what to search for
-   - Which directories to focus on
-   - What information to extract
-   - Expected output format
-5. **Request specific file:line references** in responses
-6. **Wait for all tasks to complete** before synthesizing
-7. **Verify sub-task results** - if something seems off, spawn follow-up tasks
-
-## Example Interaction Flows
-
-**Scenario 1: User provides task document**
-```
-User: /feature_iterate @thoughts/features/user-auth/task.md - add phase for error handling
-Assistant: [Reads task.md, finds plan.md, researches error handling patterns, updates plan, updates task.md activity, calls ExitPlanMode]
-```
-
-**Scenario 2: User provides plan file directly**
-```
-User: /feature_iterate thoughts/features/user-auth/plan.md
-Assistant: I've found the plan. What changes would you like to make?
-User: Split Phase 2 into two phases - one for backend, one for frontend
-Assistant: [Proceeds with update, calls ExitPlanMode]
-```
-
-**Scenario 3: User provides no arguments**
-```
-User: /feature_iterate
-Assistant: Which plan would you like to update? Please provide the path...
-User: @thoughts/features/user-auth/task.md
-Assistant: [Reads task.md, finds plan] I've found the plan. What changes would you like to make?
-User: Add more specific success criteria
-Assistant: [Proceeds with update, updates task.md activity, calls ExitPlanMode]
-```
+- **Be skeptical**: Question problematic change requests, verify technical feasibility, point out conflicts with existing phases
+- **Be surgical**: Make precise edits, preserve good content, only research what's needed
+- **Be thorough**: Read the full plan before editing, ensure updated sections maintain quality
+- **Be interactive**: Confirm understanding before editing, show what you plan to change, allow course corrections
+- **No open questions**: If changes raise questions, ask or research immediately -- never leave unresolved items
+- **Success criteria**: Maintain automated (prefer `make` commands) vs manual distinction
+- **Sub-tasks**: Only spawn if truly needed; be specific about directories; request file:line references; wait for all to complete
