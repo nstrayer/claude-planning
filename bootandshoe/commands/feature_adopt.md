@@ -1,5 +1,6 @@
 ---
 description: Adopt in-progress work into the feature tracking workflow
+model: opus
 ---
 
 # Adopt Feature

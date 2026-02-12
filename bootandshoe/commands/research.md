@@ -1,5 +1,6 @@
 ---
 description: Document codebase with optional feature context
+model: opus
 ---
 
 # Research Codebase

@@ -1,5 +1,6 @@
 ---
 description: Validate implementation against PRD requirements and plan success criteria
+model: opus
 ---
 
 # Validate Feature

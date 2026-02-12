@@ -1,5 +1,6 @@
 ---
 description: Plan and execute simple tasks in one shot, with automatic complexity detection
+model: opus
 ---
 
 # One-Shot Task Execution

@@ -1,5 +1,6 @@
 ---
 description: Implement approved technical plans with phased verification
+model: opus
 ---
 
 # Implement Plan
